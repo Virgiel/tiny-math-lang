@@ -1,18 +1,12 @@
 <script>
-  import EditorView from './EditorView.svelte';
-  import { newMultilineEditor } from './multineEditor';
+  import { Router, Route } from 'svelte-routing';
+  import Home from './Home.svelte';
+  import Editor from './Editor.svelte';
 
-  const multiline = newMultilineEditor();
+  export let url = '';
 </script>
 
-<div class="screen">
-  <EditorView editor={multiline} />
-</div>
-
-<style>
-  .screen {
-    display: grid;
-    height: 100vh;
-    width: 100vw;
-  }
-</style>
+<Router {url}>
+  <Route path="editor" component={Editor} />
+  <Route path="/" component={Home} />
+</Router>

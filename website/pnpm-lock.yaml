@@ -1,11 +1,13 @@
 dependencies:
   sirv-cli: 1.0.11
+  svelte-routing: 1.5.0_svelte@3.34.0
 devDependencies:
   '@rollup/plugin-commonjs': 17.1.0_rollup@2.40.0
   '@rollup/plugin-node-resolve': 11.2.0_rollup@2.40.0
   '@wasm-tool/rollup-plugin-rust': 1.0.5
   postcss: 8.2.6
   rollup: 2.40.0
+  rollup-plugin-clear: 2.0.7
   rollup-plugin-copy: 3.4.0
   rollup-plugin-livereload: 2.0.0
   rollup-plugin-postcss: 4.0.0_postcss@8.2.6
@@ -1970,6 +1972,13 @@ packages:
     dev: true
     resolution:
       integrity: sha1-QzdOLiyglosO8VI0YLfXMP8i7rM=
+  /rimraf/2.7.1:
+    dependencies:
+      glob: 7.1.6
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
   /rimraf/3.0.2:
     dependencies:
       glob: 7.1.6
@@ -1977,6 +1986,12 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
+  /rollup-plugin-clear/2.0.7:
+    dependencies:
+      rimraf: 2.7.1
+    dev: true
+    resolution:
+      integrity: sha512-Hg8NC3JcJBO1ofgyQC0IACpyKn/yhHPGZ3C7R3ubNGWUXy9JXHQrewk4J4hVcZznw6SOKayLsaNae596Rwt8Vg==
   /rollup-plugin-copy/3.4.0:
     dependencies:
       '@types/fs-extra': 8.1.1
@@ -2240,6 +2255,14 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
+  /svelte-routing/1.5.0_svelte@3.34.0:
+    dependencies:
+      svelte: 3.34.0
+    dev: false
+    peerDependencies:
+      svelte: ^3.20.x
+    resolution:
+      integrity: sha512-4ftcSO2x5kzCUWQKm9Td6/C+t7lRjMEo72utRO0liS/aWZuRwAXOBl3y+hWZw8tV+DTGElqaAAyi44AuWXcVBg==
   /svelte/3.34.0:
     dev: true
     engines:
@@ -2415,6 +2438,7 @@ specifiers:
   '@wasm-tool/rollup-plugin-rust': 1.0.5
   postcss: 8.2.6
   rollup: ^2.40.0
+  rollup-plugin-clear: 2.0.7
   rollup-plugin-copy: 3.4.0
   rollup-plugin-livereload: ^2.0.0
   rollup-plugin-postcss: ^4.0.0
@@ -2423,3 +2447,4 @@ specifiers:
   rollup-plugin-terser: ^7.0.2
   sirv-cli: ^1.0.11
   svelte: ^3.34.0
+  svelte-routing: ^1.5.0

@@ -4,6 +4,7 @@ let loaded;
 
 async function load() {
   loaded = await wasm();
+  return loaded;
 }
 
 function crate() {

@@ -29,7 +29,7 @@ const removeSpan = /<\/?span[^>]*>/g;
 
 /** Code editor with multiple editable lines */
 function newMultilineEditor() {
-  let code = defaultCode.repeat(1); // Displayed code
+  let code = defaultCode.repeat(100); // Displayed code
   let linePos = 0; // Cursor line pos
   let charPos = 0; // Cursor char pos
   let offsets = []; // Lines offset in code
@@ -51,7 +51,7 @@ function newMultilineEditor() {
     lengths = split.map(line => line.length);
     nbLines = split.length;
     let highlight = crate().highlight_batch(code);
-    let executed = crate().exec_batch(code);
+    let executed = crate().execute_batch(code);
     let wrap = lengths.map((length, i) => ({
       contentLen: length,
       content: highlight[i] ?? '',

@@ -7,6 +7,7 @@ import svelteSVG from 'rollup-plugin-svelte-svg';
 import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
 import rust from '@wasm-tool/rollup-plugin-rust';
+import clear from 'rollup-plugin-clear';
 
 const production = !process.env.ROLLUP_WATCH;
 const sourcemap = false;
@@ -28,6 +29,9 @@ export default {
     postcss({
       extract: true,
       minimize: production,
+    }),
+    clear({
+      targets: ['public'],
     }),
     copy({
       targets: [{ src: ['static/*'], dest: 'public/' }],

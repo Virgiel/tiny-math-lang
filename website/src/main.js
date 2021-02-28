@@ -1,7 +1,7 @@
-import Load from './Load.svelte';
+import App from './App.svelte';
 import './global.css';
 
-const app = new Load({
+const app = new App({
   target: document.body,
 });
 
