@@ -1,0 +1,49 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  scroll-behavior: smooth;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Fira Code', monospace;
+}
+
+:root {
+  --background: #222222;
+  --foreground: #dfbf8e;
+  --black: #665c54;
+  --red: #ea6962;
+  --green: #a9b665;
+  --yellow: #e78a4e;
+  --blue: #7daea3;
+  --magenta: #d3869b;
+  --cyan: #89b482;
+  --white: #dfbf8e;
+  --grey: #928374;
+  --highlight: #92837420;
+}
+
+.comment {
+  color: #928374;
+}
+.function {
+  color: #a9b665;
+}
+.number {
+  color: #7daea3;
+}
+.operator {
+  color: #e78a4e;
+}
+.error {
+  color: #ea6962;
+}
+.variable {
+  color: #d3869b;
+}
+.exec {
+  --background: #333333;
+}
