@@ -100,6 +100,6 @@ fn prefix_binding_power(op: Op) -> u8 {
 fn infix_binding_power(op: Op) -> u8 {
     match op {
         Op::Add | Op::Sub => 1,
-        Op::Mul | Op::Div => 2,
+        Op::Mul | Op::Div | Op::Mod => 2,
     }
 }

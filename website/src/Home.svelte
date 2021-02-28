@@ -18,17 +18,38 @@
   <h2>Supported features</h2>
   <h3>Common operations</h3>
   <ul>
-    <li>{'Addition      '} <LineExec code={'1+2'} /></li>
-    <li>{'Subtraction   '} <LineExec code={'1-2'} /></li>
-    <li>{'Multiplication'} <LineExec code={'1*2'} /></li>
-    <li>{'Division      '} <LineExec code={'1/2'} /></li>
+    <li>{'Addition      '} <LineExec code={'1 + 2'} /></li>
+    <li>{'Subtraction   '} <LineExec code={'1 - 2'} /></li>
+    <li>{'Multiplication'} <LineExec code={'1 * 2'} /></li>
+    <li>{'Division      '} <LineExec code={'1 / 2'} /></li>
+    <li>{'Modulo        '} <LineExec code={'100 % 7'} /></li>
   </ul>
   <h3>Common functions</h3>
   <ul>
-    <li>{'Cosinus '} <LineExec code={'cos(3)'} /></li>
-    <li>{'Sinus   '} <LineExec code={'sin(1)'} /></li>
+    <li>{'Floor   '} <LineExec code={'floor(10/3)'} /></li>
+    <li>{'Ceil    '} <LineExec code={'ceil(10/3)'} /></li>
+    <li>{'Round   '} <LineExec code={'round(10/3)'} /></li>
+  </ul>
+  <ul>
+    <li>{'Trunc   '} <LineExec code={'trunc(10/3)'} /></li>
+    <li>{'Fract   '} <LineExec code={'fract(10/3)'} /></li>
+  </ul>
+  <ul>
+    <li>{'Sqrt    '} <LineExec code={'sqrt(49)'} /></li>
+    <li>{'Exp     '} <LineExec code={'exp(7)'} /></li>
+    <li>{'Ln      '} <LineExec code={'ln(7)'} /></li>
+  </ul>
+  <ul>
     <li>{'Log2    '} <LineExec code={'log2(100)'} /></li>
     <li>{'Log10   '} <LineExec code={'log2(100)'} /></li>
+  </ul>
+  <ul>
+    <li>{'Cosinus '} <LineExec code={'cos(3)'} /></li>
+    <li>{'Sinus   '} <LineExec code={'sin(3)'} /></li>
+    <li>{'Tangente'} <LineExec code={'tan(3)'} /></li>
+    <li>{'ACosinus'} <LineExec code={'acos(cos(3))'} /></li>
+    <li>{'ASinus  '} <LineExec code={'asin(sin(3))'} /></li>
+    <li>{'ATan    '} <LineExec code={'atan(tan(3))'} /></li>
   </ul>
   <h3>Comments</h3>
   <Highlighter code={'# This is a comment'} />

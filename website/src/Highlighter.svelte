@@ -15,7 +15,7 @@
   .code {
     background: #333333;
     border-radius: 4px;
-    padding: 0 3px;
+    padding: 0 5px;
     width: fit-content;
     white-space: pre;
   }

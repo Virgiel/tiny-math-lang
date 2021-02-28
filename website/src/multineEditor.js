@@ -17,6 +17,11 @@ const defaultCode = `
 cos(5)
 sin(4/8)
 log2(1000)
+exp(ln(7))
+10 / 3
+trunc(10/3)
+fract(10/3)
+
 
 # ----- TODO ----- #
 # Formatted print
@@ -29,7 +34,7 @@ const removeSpan = /<\/?span[^>]*>/g;
 
 /** Code editor with multiple editable lines */
 function newMultilineEditor() {
-  let code = defaultCode.repeat(100); // Displayed code
+  let code = defaultCode.repeat(1); // Displayed code
   let linePos = 0; // Cursor line pos
   let charPos = 0; // Cursor char pos
   let offsets = []; // Lines offset in code
@@ -110,7 +115,7 @@ function newMultilineEditor() {
           }
         } else if (key == 'ArrowRight') {
           clampCharPos();
-          if (charPos + 1 < lengths[linePos]) {
+          if (charPos < lengths[linePos]) {
             charPos++;
           } else if (linePos + 1 < nbLines) {
             linePos++;

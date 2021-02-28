@@ -11,6 +11,7 @@ enum Op {
     Sub,
     Mul,
     Div,
+    Mod,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -85,16 +86,29 @@ fn compute(expr: &Expr) -> Result<f64, String> {
                 Op::Sub => l - r,
                 Op::Mul => l * r,
                 Op::Div => l / r,
+                Op::Mod => l % r,
             }
         }
         Expr::Fun(name, expr) => {
             let nb = compute(expr)?;
             match name.as_str() {
-                "cos" => nb.cos(),
-                "sin" => nb.sin(),
+                "floor" => nb.floor(),
+                "ceil" => nb.ceil(),
+                "round" => nb.round(),
+                "trunc" => nb.trunc(),
+                "fract" => nb.fract(),
+                "sqrt" => nb.sqrt(),
+                "exp" => nb.exp(),
+                "ln" => nb.ln(),
                 "log2" => nb.log2(),
                 "log10" => nb.log10(),
-                _ => return Err(format!("Unknown function {}')", name)),
+                "cos" => nb.cos(),
+                "sin" => nb.sin(),
+                "tan" => nb.tan(),
+                "acos" => nb.acos(),
+                "asin" => nb.asin(),
+                "atan" => nb.atan(),
+                _ => return Err(format!("Unknown function {}", name)),
             }
         }
     })
@@ -145,6 +159,7 @@ mod test {
         assert_compute("-2", -2.);
         assert_compute("2*3", 6.);
         assert_compute("10/2", 5.);
+        assert_compute("100%7", 2.);
     }
 
     #[test]

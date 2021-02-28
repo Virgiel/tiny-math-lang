@@ -82,6 +82,7 @@ impl<'a> Lexer<'a> {
                 '-' => ((TokenKind::Op(Op::Sub), uni_range)),
                 '*' => ((TokenKind::Op(Op::Mul), uni_range)),
                 '/' => ((TokenKind::Op(Op::Div), uni_range)),
+                '%' => ((TokenKind::Op(Op::Mod), uni_range)),
                 '(' => ((TokenKind::Sep(Sep::Open), uni_range)),
                 ')' => ((TokenKind::Sep(Sep::Close), uni_range)),
                 '#' => ((TokenKind::Sep(Sep::Comment), uni_range)),
