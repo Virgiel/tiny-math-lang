@@ -105,7 +105,7 @@ mod test {
     use crate::compute;
     use crate::parse;
     use crate::Lexer;
-    use crate::{exec_line, parser::Line};
+    use crate::{exec_line, highlight, parser::Line};
 
     fn assert_compute(str: &str, nb: f64) {
         let parsed = parse(Lexer::load(str));
@@ -173,5 +173,11 @@ mod test {
     fn test_lines() {
         assert_eq!(exec_line("").unwrap(), "");
         assert_eq!(exec_line("# I love chocolate").unwrap(), "");
+    }
+
+    #[test]
+    fn test_support_unicode() {
+        highlight("1+1°");
+        highlight("あさきゆめみしゑひもせす");
     }
 }

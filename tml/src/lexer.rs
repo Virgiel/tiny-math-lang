@@ -66,70 +66,62 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Lex in a collect manner
-    pub fn collect(input: &'a str) -> Vec<Token<'a>> {
-        let mut lexer = Self::load(input);
-        let mut buf = Vec::new();
-        loop {
-            let token = lexer.next();
-            buf.push(token);
-            if buf.last().unwrap().kind() == TokenKind::Eof {
-                return buf;
-            }
-        }
-    }
-
     /// Lex the next token
     fn lex_next(&mut self) -> Token<'a> {
-        let i = &mut self.index;
-        let bytes = self.input.as_bytes();
+        let chars = self.input.get(self.index..).unwrap_or("").char_indices();
 
         // Skip whitespace
-        while *i != bytes.len() && bytes[*i].is_ascii_whitespace() {
-            *i += 1; // Consume whitespace
-        }
+        let mut chars = chars.skip_while(|(_, c)| c.is_whitespace());
 
         // Lex token
-        let (kind, range) = if *i != bytes.len() {
-            let start = *i;
+        let (kind, range) = if let Some((i, c)) = chars.next() {
+            let start = self.index + i;
             let uni_range = start..start + 1;
+            match c {
+                '+' => ((TokenKind::Op(Op::Add), uni_range)),
+                '-' => ((TokenKind::Op(Op::Sub), uni_range)),
+                '*' => ((TokenKind::Op(Op::Mul), uni_range)),
+                '/' => ((TokenKind::Op(Op::Div), uni_range)),
+                '(' => ((TokenKind::Sep(Sep::Open), uni_range)),
+                ')' => ((TokenKind::Sep(Sep::Close), uni_range)),
+                '#' => ((TokenKind::Sep(Sep::Comment), uni_range)),
+                c if is_nb(c) => {
+                    let mut chars = chars.skip_while(|(_, char)| is_nb(*char));
 
-            *i += 1; // Consume one byte
-            match bytes[*i - 1] {
-                b'+' => ((TokenKind::Op(Op::Add), uni_range)),
-                b'-' => ((TokenKind::Op(Op::Sub), uni_range)),
-                b'*' => ((TokenKind::Op(Op::Mul), uni_range)),
-                b'/' => ((TokenKind::Op(Op::Div), uni_range)),
-                b'(' => ((TokenKind::Sep(Sep::Open), uni_range)),
-                b')' => ((TokenKind::Sep(Sep::Close), uni_range)),
-                b'#' => ((TokenKind::Sep(Sep::Comment), uni_range)),
-                b'0'..=b'9' => {
-                    let mut has_dot = false;
-                    while *i != bytes.len() {
-                        match bytes[*i] {
-                            b'0'..=b'9' => *i += 1, // Consume digit
-                            b'.' if !has_dot => {
-                                has_dot = true;
-                                *i += 1; // Consume dot one time
+                    let end = match chars.next() {
+                        Some((i, c)) => match c {
+                            '.' => {
+                                // The number is in two part, apply same logic for the second part
+                                chars
+                                    .find(|(_, c)| !is_nb(*c))
+                                    .map(|(i, _)| i + self.index)
+                                    .unwrap_or(self.input.len())
                             }
-                            _ => break,
-                        }
-                    }
-                    (TokenKind::Nb, start..*i)
+                            _ => i + self.index, // End of number
+                        },
+                        // We have reach the end of the line
+                        None => self.input.len(),
+                    };
+                    (TokenKind::Nb, start..end)
                 }
-                b'a'..=b'z' => {
-                    while *i != bytes.len() && bytes[*i].is_ascii_alphanumeric() {
-                        *i += 1; // Consume alphanumeric
-                    }
-                    (TokenKind::Id, start..*i)
+                c if is_id_init(c) => {
+                    let end = chars
+                        .find(|(_, c)| !is_id_content(*c))
+                        .map(|(i, _)| i + self.index)
+                        .unwrap_or(self.input.len());
+                    (TokenKind::Id, start..end)
                 }
-                _ => ((TokenKind::Err, uni_range)),
+                _ => ((TokenKind::Err, start..self.input.len())),
             }
         } else {
             // No more token
-            (TokenKind::Eof, 0..0)
+            let len = self.input.len();
+            (TokenKind::Eof, len..len)
         };
-        Token::new(self.input, kind, range)
+        self.index = range.end;
+        let tmp = Token::new(self.input, kind, range);
+        dbg!(&tmp);
+        tmp
     }
 
     /// Return the next token moving forward
@@ -144,4 +136,16 @@ impl<'a> Lexer<'a> {
         }
         self.peeked.as_ref().unwrap()
     }
+}
+
+pub fn is_nb(c: char) -> bool {
+    matches!(c, '0'..='9')
+}
+
+pub fn is_id_init(c: char) -> bool {
+    matches!(c, 'a'..='z' | 'A'..='Z' | '_')
+}
+
+pub fn is_id_content(c: char) -> bool {
+    matches!(c, 'a'..='z' | 'A'..='Z' | '1'..='9' | '_')
 }
