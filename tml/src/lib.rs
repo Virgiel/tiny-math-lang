@@ -113,7 +113,7 @@ fn compute_literal(lit: &Literal) -> Result<f64, String> {
                 "acos" => nb.acos(),
                 "asin" => nb.asin(),
                 "atan" => nb.atan(),
-                _ => return Err(format!("Unknown function {}", name)),
+                _ => return Err(format!("Unknown function '{}'", name)),
             }
         }
     })
@@ -122,6 +122,7 @@ fn compute_literal(lit: &Literal) -> Result<f64, String> {
 #[cfg(test)]
 mod test {
     use crate::compute_literal;
+    use crate::compute_print;
     use crate::parse;
     use crate::Lexer;
     use crate::{exec_line, highlight, parser::Line};
@@ -143,6 +144,22 @@ mod test {
         assert_eq!(result.unwrap(), nb)
     }
 
+    fn assert_print(str: &str, expected: &str) {
+        let parsed = parse(Lexer::load(str));
+        assert!(parsed.is_ok(), "{:?}", parsed);
+        let expr = match parsed.unwrap() {
+            Line::Expr(it) => it,
+            _ => unreachable!(),
+        };
+        let print = match expr {
+           Expression::Print(print) => print,
+           _ => unreachable!() 
+        };
+        let result = compute_print(&print);
+        assert!(result.is_ok(), "{:?}", result);
+        assert_eq!(result.unwrap(), expected)
+    }
+
     fn assert_fail(str: &str) {
         assert!(exec_line(str).is_err(), "{:?}", exec_line(str))
     }
@@ -159,6 +176,7 @@ mod test {
     fn test_parse_fun() {
         assert_compute("cos(0.25)", 0.25f64.cos());
         assert_compute("sin(0.25)", 0.25f64.sin());
+        assert_compute("log10(100)", 2.);
     }
 
     #[test]
@@ -192,12 +210,25 @@ mod test {
         assert_fail("*4");
         assert_fail("/1");
         assert_fail("/1#");
+        assert_fail("\"");
+        assert_fail("12 \"nop\"");
+        assert_fail("\"nop");
+        assert_fail("\"12\" 34 \"nop");
     }
 
     #[test]
     fn test_lines() {
         assert_eq!(exec_line("").unwrap(), "");
         assert_eq!(exec_line("# I love chocolate").unwrap(), "");
+    }
+    
+    #[test]
+    fn test_print() {
+        assert_print("\"I Love Chocolate\"", "I Love Chocolate");
+        assert_print("   \"I Love Chocolate\"  ", "I Love Chocolate");
+        assert_print("\"I am \"18\" year old\"  ", "I am 18 year old");
+        assert_print("\"I am \"18\" year old\"42", "I am 18 year old42");
+        assert_print("\"A\"\"B\"42\"C\"log2(345)+(5/9)*19-2\"Chocolate\"", "AB42C16.98600810722109Chocolate");
     }
 
     #[test]

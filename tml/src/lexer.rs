@@ -51,6 +51,10 @@ impl<'a> Token<'a> {
         &self.source[self.span.clone()]
     }
 
+    pub fn after(&self) -> Token {
+        Token::new(self.source, self.kind, self.span.end..self.span.end + 1)
+    }
+
     pub fn err_there(&self, err: &str) -> String {
         format!(
             "{}\n{}\n{:>4$}{:^>5$}",
@@ -142,9 +146,7 @@ impl<'a> Lexer<'a> {
             (TokenKind::Eof, len..len)
         };
         self.index = range.end;
-        let tmp = Token::new(self.input, kind, range);
-        dbg!(&tmp);
-        tmp
+        return Token::new(self.input, kind, range);
     }
 
     /// Return the next token moving forward
@@ -170,5 +172,5 @@ pub fn is_id_init(c: char) -> bool {
 }
 
 pub fn is_id_content(c: char) -> bool {
-    matches!(c, 'a'..='z' | 'A'..='Z' | '1'..='9' | '_')
+    matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_')
 }

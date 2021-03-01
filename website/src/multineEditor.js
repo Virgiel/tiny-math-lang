@@ -13,7 +13,7 @@ const defaultCode = `
 2+2
 8/(2*(2+2))
 
-# And even use mathematical function
+# Use mathematical function
 cos(5)
 sin(4/8)
 log2(1000)
@@ -22,12 +22,13 @@ exp(ln(7))
 trunc(10/3)
 fract(10/3)
 
+# And print text
 
-# ----- TODO ----- #
-# Formatted print
-# Variables
-# Custom function ?
-# Formatter ?
+"J'aime le chocolat"
+"Full: "1/3"   Truncated: "trunc(1/3)"    Decimal: "fract(1/3)
+
+# And more is coming soon
+
 `;
 
 const removeSpan = /<\/?span[^>]*>/g;

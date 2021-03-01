@@ -15,6 +15,14 @@
     language implementation (lexer, parser, highlighter, interpreter) is written
     in rust, and this website and the code editor are written in Svelte.
   </p>
+  <h2>Syntax</h2>
+  <h3>Expressions</h3>
+  <p><LineExec code={'1+2+3+4+5+6+7+8+9'} /></p>
+  <h3>Comments</h3>
+  <Highlighter code={'# This is a comment'} />
+  <h3>String</h3>
+  <p><LineExec code={'"Hello world"'} /></p>
+  <p><LineExec code={'"The answer is " 42'} /></p>
   <h2>Supported features</h2>
   <h3>Common operations</h3>
   <ul>
@@ -31,28 +39,33 @@
     <li>{'Round   '} <LineExec code={'round(10/3)'} /></li>
   </ul>
   <ul>
-    <li>{'Trunc   '} <LineExec code={'trunc(10/3)'} /></li>
-    <li>{'Fract   '} <LineExec code={'fract(10/3)'} /></li>
+    <li>{'Trunc   '} <LineExec code={'trunc(13/2)'} /></li>
+    <li>{'Fract   '} <LineExec code={'fract(13/2)'} /></li>
   </ul>
   <ul>
     <li>{'Sqrt    '} <LineExec code={'sqrt(49)'} /></li>
-    <li>{'Exp     '} <LineExec code={'exp(7)'} /></li>
-    <li>{'Ln      '} <LineExec code={'ln(7)'} /></li>
+    <li>{'Exp     '} <LineExec code={'exp(0)'} /></li>
+    <li>{'Ln      '} <LineExec code={'ln(1)'} /></li>
   </ul>
   <ul>
-    <li>{'Log2    '} <LineExec code={'log2(100)'} /></li>
-    <li>{'Log10   '} <LineExec code={'log2(100)'} /></li>
+    <li>{'Log2    '} <LineExec code={'log2(2048)'} /></li>
+    <li>{'Log10   '} <LineExec code={'log10(100)'} /></li>
   </ul>
   <ul>
-    <li>{'Cosinus '} <LineExec code={'cos(3)'} /></li>
-    <li>{'Sinus   '} <LineExec code={'sin(3)'} /></li>
-    <li>{'Tangente'} <LineExec code={'tan(3)'} /></li>
-    <li>{'ACosinus'} <LineExec code={'acos(cos(3))'} /></li>
-    <li>{'ASinus  '} <LineExec code={'asin(sin(3))'} /></li>
-    <li>{'ATan    '} <LineExec code={'atan(tan(3))'} /></li>
+    <li>{'Cosinus '} <LineExec code={'cos(0)'} /></li>
+    <li>{'Sinus   '} <LineExec code={'sin(0)'} /></li>
+    <li>{'Tangente'} <LineExec code={'tan(0)'} /></li>
+    <li>{'ACosinus'} <LineExec code={'acos(cos(0))'} /></li>
+    <li>{'ASinus  '} <LineExec code={'asin(sin(0))'} /></li>
+    <li>{'ATan    '} <LineExec code={'atan(tan(0))'} /></li>
   </ul>
-  <h3>Comments</h3>
-  <Highlighter code={'# This is a comment'} />
+  <h2>TO DO</h2>
+  <ul>
+    <li>Variables</li>
+    <li>Common constants (PI, MIN, MAX, Epsilon)</li>
+    <li>Defined functions?</li>
+    <li>Formatter?</li>
+  </ul>
 </div>
 
 <style>
@@ -70,6 +83,9 @@
   }
   a:active {
     color: var(--cyan);
+  }
+  p {
+    margin: 3px 0;
   }
   li {
     white-space: pre;

@@ -83,8 +83,7 @@ pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
                 TokenKind::Str => Expression::Print(parse_print(&mut lexer)?),
                 _ => Expression::Literal(parser_literal(&mut lexer, 0)?),
             };
-            dbg!(lexer.next());
-            expect_kind(lexer.next(), TokenKind::Eof, "Uncompleted expression")?;
+            expect_kind(lexer.next(), TokenKind::Eof, "Incomplete expression")?;
             Line::Expr(expr)
         }
     };
@@ -106,21 +105,19 @@ fn expect_kind<'a, 'b>(
 fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
     let mut buf = Vec::new();
     loop {
-        let token = lexer.next();
+        let token = lexer.peek();
 
         buf.push(match token.kind() {
-            TokenKind::Str => Print::Str(token.splice().trim_matches('"').to_string()),
-            TokenKind::Sep(Sep::Open) => {
-                let lit = parser_literal(lexer, 0)?;
-                expect_kind(
-                    lexer.next(),
-                    TokenKind::Sep(Sep::Close),
-                    "Missing block end, ')' is missing",
-                )?;
-                Print::Literal(lit)
+            TokenKind::Str => {
+                if !token.splice().ends_with('"') || token.splice().len() < 2 {
+                    return Err(token
+                        .after()
+                        .err_there("Missing string end, '\"' is missing"));
+                }
+                Print::Str(lexer.next().splice().trim_matches('"').to_string())
             }
             TokenKind::Eof => return Ok(buf),
-            _ => return Err(token.err_there("Expected a block or another string")),
+            _ => Print::Literal(parser_literal(lexer, 0)?),
         });
     }
 }
@@ -146,13 +143,13 @@ fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
             expect_kind(
                 lexer.next(),
                 TokenKind::Sep(Sep::Open),
-                "Missing function invocation, '(' is missing",
+                "Missing function invocation '('",
             )?;
             let expr = parser_literal(lexer, 0)?;
             expect_kind(
                 lexer.next(),
                 TokenKind::Sep(Sep::Close),
-                "Missing function invocation end, ')' is missing",
+                "Missing function invocation end ')'",
             )?;
             Literal::Fun(id, Box::new(expr))
         }
