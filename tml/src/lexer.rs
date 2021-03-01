@@ -1,15 +1,30 @@
 use std::ops::Range;
 
-use crate::{Op, Sep};
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Op {
+    Add, // +
+    Sub, // -
+    Mul, // *
+    Div, // /
+    Mod, // %
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Sep {
+    Open,    // (
+    Close,   // )
+    Comment, // #
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
-    Nb,
-    Op(Op),
-    Id,
-    Sep(Sep),
-    Err,
-    Eof,
+    Nb,       // f64 num
+    Op(Op),   // Any operator
+    Id,       // Sequence of supported char
+    Str,      // Sequence of any char between """
+    Sep(Sep), // Any separator
+    Err,      // Unsupported char
+    Eof,      // End of file
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -86,6 +101,13 @@ impl<'a> Lexer<'a> {
                 '(' => ((TokenKind::Sep(Sep::Open), uni_range)),
                 ')' => ((TokenKind::Sep(Sep::Close), uni_range)),
                 '#' => ((TokenKind::Sep(Sep::Comment), uni_range)),
+                '"' => {
+                    let end = chars
+                        .find(|(_, c)| *c == '"')
+                        .map(|(i, _)| i + self.index + 1)
+                        .unwrap_or(self.input.len());
+                    (TokenKind::Str, start..end)
+                }
                 c if is_nb(c) => {
                     let mut chars = chars.skip_while(|(_, char)| is_nb(*char));
 

@@ -1,21 +1,76 @@
-use crate::{
-    lexer::{Lexer, TokenKind},
-    Op, Sep,
-};
+use std::convert::{TryFrom, TryInto};
+
+use crate::lexer::{Lexer, Op, Sep, Token, TokenKind};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Line {
-    Expr(Expr),
+    Expr(Literal),
     Comment(usize),
     Empty,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnOp {
+    Add, // +x
+    Sub, // -x
+}
+
+impl TryFrom<Op> for UnOp {
+    type Error = &'static str;
+
+    fn try_from(op: Op) -> Result<Self, Self::Error> {
+        let op = match op {
+            Op::Add => UnOp::Add,
+            Op::Sub => UnOp::Sub,
+            _ => return Err("Expected an unary operator such as + or -"),
+        };
+        Ok(op)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum BinOp {
+    Add, // x+x
+    Sub, // x-x
+    Mul, // x*x
+    Div, // x/x
+    Mod, // x%x
+}
+
+impl TryFrom<Op> for BinOp {
+    type Error = &'static str;
+
+    fn try_from(op: Op) -> Result<Self, Self::Error> {
+        let op = match op {
+            Op::Add => BinOp::Add,
+            Op::Sub => BinOp::Sub,
+            Op::Mul => BinOp::Mul,
+            Op::Div => BinOp::Div,
+            Op::Mod => BinOp::Mod,
+            _ => return Err("Expected an unary operator such as + or -"),
+        };
+        Ok(op)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expr {
+pub enum Expression {
+    Literal(Literal),
+   // Print(Vec<Print>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Literal {
     Nb(f64),
-    UnaryOp(Op, Box<Expr>),
-    BinaryOp(Op, Box<(Expr, Expr)>),
-    Fun(String, Box<Expr>),
+    UnaryOp(UnOp, Box<Literal>),
+    BinaryOp(BinOp, Box<(Literal, Literal)>),
+    Fun(String, Box<Literal>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Print {
+    Literal(Literal),
+    Str(String),
 }
 
 pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
@@ -25,7 +80,7 @@ pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
     } else if peek.kind() == TokenKind::Sep(Sep::Comment) {
         Ok(Line::Comment(peek.span().start))
     } else {
-        let expr = parser_expr(&mut lexer, 0)?;
+        let expr = parser_literal(&mut lexer, 0)?;
         let next = lexer.next();
         if next.kind() != TokenKind::Eof {
             return Err(next.err_there("Invalid expression"));
@@ -34,46 +89,84 @@ pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
     }
 }
 
-fn parser_expr(lexer: &mut Lexer, min_bp: u8) -> Result<Expr, String> {
+fn expect_kind<'a, 'b>(
+    token: Token<'a>,
+    kind: TokenKind,
+    msg: &'b str,
+) -> Result<Token<'a>, String> {
+    if token.kind() != kind {
+        return Err(token.err_there(msg));
+    } else {
+        return Ok(token);
+    }
+}
+
+fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
+    let mut buf = Vec::new();
+    loop {
+        let token = lexer.next();
+
+        buf.push(match token.kind() {
+            TokenKind::Str => Print::Str(token.splice().to_string()),
+            _ => Print::Literal(parser_literal(lexer, 0)?),
+        });
+
+        let next = lexer.peek();
+        match next.kind() {
+            TokenKind::Op(Op::Add) => continue,
+            TokenKind::Eof => return Ok(buf),
+            _ => return Err(token.err_there("Expected concat operator +")),
+        }
+    }
+}
+
+fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
     let token = lexer.next();
     let mut lhs = match token.kind() {
         TokenKind::Nb => match token.splice().parse::<f64>() {
-            Ok(nb) => Expr::Nb(nb),
+            Ok(nb) => Literal::Nb(nb),
             Err(_) => return Err(token.err_there("Invalid Number")),
         },
         TokenKind::Sep(Sep::Open) => {
-            let lhs = parser_expr(lexer, 0)?;
-            let next = lexer.next();
-            if next.kind() != TokenKind::Sep(Sep::Close) {
-                return Err(next.err_there("An opened block miss its end, a ')' is missing"));
-            }
+            let lhs = parser_literal(lexer, 0)?;
+            expect_kind(
+                lexer.next(),
+                TokenKind::Sep(Sep::Close),
+                "An opened block miss its end, a ')' is missing",
+            )?;
             lhs
         }
         TokenKind::Id => {
             let id = token.splice().into();
-            let next = lexer.next();
-            if next.kind() != TokenKind::Sep(Sep::Open) {
-                return Err(
-                    next.err_there("A function invocation miss its arguments, a '(' is missing")
-                );
-            }
-            let expr = parser_expr(lexer, 0)?;
-            let next = lexer.next();
-            if next.kind() != TokenKind::Sep(Sep::Close) {
-                return Err(next.err_there("An function invocation miss its end, a ')' is missing"));
-            }
-            Expr::Fun(id, Box::new(expr))
+            expect_kind(
+                lexer.next(),
+                TokenKind::Sep(Sep::Open),
+                "A function invocation miss its arguments, a '(' is missing",
+            )?;
+            let expr = parser_literal(lexer, 0)?;
+            expect_kind(
+                lexer.next(),
+                TokenKind::Sep(Sep::Close),
+                "An function invocation miss its end, a ')' is missing",
+            )?;
+            Literal::Fun(id, Box::new(expr))
         }
-        TokenKind::Op(op) => {
-            let hs = parser_expr(lexer, prefix_binding_power(op))?;
-            Expr::UnaryOp(op, Box::new(hs))
-        }
+        TokenKind::Op(op) => match op.try_into() {
+            Ok(op) => {
+                let hs = parser_literal(lexer, prefix_binding_power(op))?;
+                Literal::UnaryOp(op, Box::new(hs))
+            }
+            Err(err) => return Err(token.err_there(err)),
+        },
         _ => return Err(token.err_there("Incomplete expression")),
     };
 
     loop {
         let op = match lexer.peek().kind() {
-            TokenKind::Op(op) => op,
+            TokenKind::Op(op) => match op.try_into() {
+                Ok(op) => op,
+                Err(_) => break,
+            },
             _ => break,
         };
 
@@ -83,23 +176,22 @@ fn parser_expr(lexer: &mut Lexer, min_bp: u8) -> Result<Expr, String> {
         }
         lexer.next();
 
-        let rhs = parser_expr(lexer, bp)?;
-        lhs = Expr::BinaryOp(op, Box::new((lhs, rhs)))
+        let rhs = parser_literal(lexer, bp)?;
+        lhs = Literal::BinaryOp(op, Box::new((lhs, rhs)))
     }
 
     Ok(lhs)
 }
 
-fn prefix_binding_power(op: Op) -> u8 {
+fn prefix_binding_power(op: UnOp) -> u8 {
     match op {
-        Op::Add | Op::Sub => 3,
-        _ => 0,
+        UnOp::Add | UnOp::Sub => 3,
     }
 }
 
-fn infix_binding_power(op: Op) -> u8 {
+fn infix_binding_power(op: BinOp) -> u8 {
     match op {
-        Op::Add | Op::Sub => 1,
-        Op::Mul | Op::Div | Op::Mod => 2,
+        BinOp::Add | BinOp::Sub => 1,
+        BinOp::Mul | BinOp::Div | BinOp::Mod => 2,
     }
 }

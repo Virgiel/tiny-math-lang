@@ -1,25 +1,9 @@
-use lexer::{Lexer, TokenKind};
-use parser::{parse, Expr, Line};
+use lexer::{Lexer, Sep, TokenKind};
+use parser::{parse, BinOp, Line, Literal, UnOp};
 use std::fmt::Write;
 
 mod lexer;
 mod parser;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Op {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Mod,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Sep {
-    Open,
-    Close,
-    Comment,
-}
 
 pub fn exec_batch(input: &str) -> Vec<Result<String, String>> {
     input.lines().map(|line| exec_line(line)).collect()
@@ -60,6 +44,9 @@ pub fn highlight(input: &str) -> String {
                 TokenKind::Id => {
                     write!(buf, "<span class=\"function\">{}</span>", token.splice()).unwrap()
                 }
+                TokenKind::Str => {
+                    write!(buf, "<span class=\"string\">{}</span>", token.splice()).unwrap()
+                }
                 TokenKind::Sep(_) => buf.push_str(token.splice()),
                 TokenKind::Err => buf.push_str(token.splice()),
                 TokenKind::Eof => return buf,
@@ -68,28 +55,27 @@ pub fn highlight(input: &str) -> String {
     }
 }
 
-fn compute(expr: &Expr) -> Result<f64, String> {
+fn compute(expr: &Literal) -> Result<f64, String> {
     Ok(match expr {
-        Expr::Nb(nb) => *nb,
-        Expr::UnaryOp(op, expr) => {
+        Literal::Nb(nb) => *nb,
+        Literal::UnaryOp(op, expr) => {
             let nb = compute(expr)?;
             match op {
-                Op::Add => nb,
-                Op::Sub => -nb,
-                _ => return Err("A binary operator is missing an operand".into()),
+                UnOp::Add => nb,
+                UnOp::Sub => -nb,
             }
         }
-        Expr::BinaryOp(op, exprs) => {
+        Literal::BinaryOp(op, exprs) => {
             let (l, r) = (compute(&exprs.0)?, compute(&exprs.1)?);
             match op {
-                Op::Add => l + r,
-                Op::Sub => l - r,
-                Op::Mul => l * r,
-                Op::Div => l / r,
-                Op::Mod => l % r,
+                BinOp::Add => l + r,
+                BinOp::Sub => l - r,
+                BinOp::Mul => l * r,
+                BinOp::Div => l / r,
+                BinOp::Mod => l % r,
             }
         }
-        Expr::Fun(name, expr) => {
+        Literal::Fun(name, expr) => {
             let nb = compute(expr)?;
             match name.as_str() {
                 "floor" => nb.floor(),

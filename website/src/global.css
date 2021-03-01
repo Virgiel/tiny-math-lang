@@ -27,22 +27,25 @@ body {
 }
 
 .comment {
-  color: #928374;
+  color: var(--grey);
 }
 .function {
-  color: #a9b665;
+  color: var(--green);
 }
 .number {
-  color: #7daea3;
+  color: var(--blue);
 }
 .operator {
-  color: #e78a4e;
+  color: var(--yellow);
 }
 .error {
-  color: #ea6962;
+  color: var(--red);
 }
 .variable {
-  color: #d3869b;
+  color: var(--magenta);
+}
+.string {
+  color: var(--cyan);
 }
 .exec {
   --background: #333333;
