@@ -1,5 +1,5 @@
 use lexer::{Lexer, Sep, TokenKind};
-use parser::{parse, BinOp, Line, Literal, UnOp};
+use parser::{BinOp, Line, Literal, Print, UnOp, parse, Expression};
 use std::fmt::Write;
 
 mod lexer;
@@ -12,7 +12,14 @@ pub fn exec_batch(input: &str) -> Vec<Result<String, String>> {
 pub fn exec_line(input: &str) -> Result<String, String> {
     let lexer = Lexer::load(input);
     Ok(match parse(lexer)? {
-        Line::Expr(expr) => format!("<span class=\"variable\">λ</span> <span class=\"operator\">=<span> <span class=\"number\">{}</span>",  compute(&expr)?),
+        Line::Expr(expr) => 
+            match expr {
+                Expression::Literal(lit)=> 
+            format!("<span class=\"variable\">λ</span> <span class=\"operator\">=<span> <span class=\"number\">{}</span>",  compute_literal(&lit)?),
+            Expression::Print(print) =>  
+            format!("<span class=\"string\">{}</span>",  compute_print(&print)?),
+
+            }
         Line::Empty | Line::Comment(_) => "".to_string(),
     })
 }
@@ -55,18 +62,30 @@ pub fn highlight(input: &str) -> String {
     }
 }
 
-fn compute(expr: &Literal) -> Result<f64, String> {
-    Ok(match expr {
+fn compute_print(print: &[Print]) -> Result<String, String> {
+   let mut buf = String::new();
+    for item in print {
+       match item {
+           Print::Literal(lit) => write!(buf, "{}", compute_literal(&lit)?).unwrap(),
+           Print::Str(str) => buf.push_str(&str)
+       } 
+    }
+   Ok(buf)
+
+}
+
+fn compute_literal(lit: &Literal) -> Result<f64, String> {
+    Ok(match lit {
         Literal::Nb(nb) => *nb,
-        Literal::UnaryOp(op, expr) => {
-            let nb = compute(expr)?;
+        Literal::UnaryOp(op, lit) => {
+            let nb = compute_literal(lit)?;
             match op {
                 UnOp::Add => nb,
                 UnOp::Sub => -nb,
             }
         }
-        Literal::BinaryOp(op, exprs) => {
-            let (l, r) = (compute(&exprs.0)?, compute(&exprs.1)?);
+        Literal::BinaryOp(op, lits) => {
+            let (l, r) = (compute_literal(&lits.0)?, compute_literal(&lits.1)?);
             match op {
                 BinOp::Add => l + r,
                 BinOp::Sub => l - r,
@@ -75,8 +94,8 @@ fn compute(expr: &Literal) -> Result<f64, String> {
                 BinOp::Mod => l % r,
             }
         }
-        Literal::Fun(name, expr) => {
-            let nb = compute(expr)?;
+        Literal::Fun(name, lit) => {
+            let nb = compute_literal(lit)?;
             match name.as_str() {
                 "floor" => nb.floor(),
                 "ceil" => nb.ceil(),
@@ -102,10 +121,11 @@ fn compute(expr: &Literal) -> Result<f64, String> {
 
 #[cfg(test)]
 mod test {
-    use crate::compute;
+    use crate::compute_literal;
     use crate::parse;
     use crate::Lexer;
     use crate::{exec_line, highlight, parser::Line};
+    use crate::parser::Expression;
 
     fn assert_compute(str: &str, nb: f64) {
         let parsed = parse(Lexer::load(str));
@@ -114,13 +134,17 @@ mod test {
             Line::Expr(it) => it,
             _ => unreachable!(),
         };
-        let result = compute(&expr);
+        let lit = match expr {
+           Expression::Literal(lit) => lit,
+           _ => unreachable!() 
+        };
+        let result = compute_literal(&lit);
         assert!(result.is_ok(), "{:?}", result);
         assert_eq!(result.unwrap(), nb)
     }
 
     fn assert_fail(str: &str) {
-        assert!(exec_line(str).is_err())
+        assert!(exec_line(str).is_err(), "{:?}", exec_line(str))
     }
 
     #[test]

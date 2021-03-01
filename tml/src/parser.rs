@@ -4,7 +4,7 @@ use crate::lexer::{Lexer, Op, Sep, Token, TokenKind};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Line {
-    Expr(Literal),
+    Expr(Expression),
     Comment(usize),
     Empty,
 }
@@ -56,7 +56,7 @@ impl TryFrom<Op> for BinOp {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal(Literal),
-   // Print(Vec<Print>),
+    Print(Vec<Print>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -75,18 +75,20 @@ pub enum Print {
 
 pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
     let peek = lexer.peek();
-    if peek.kind() == TokenKind::Eof {
-        Ok(Line::Empty)
-    } else if peek.kind() == TokenKind::Sep(Sep::Comment) {
-        Ok(Line::Comment(peek.span().start))
-    } else {
-        let expr = parser_literal(&mut lexer, 0)?;
-        let next = lexer.next();
-        if next.kind() != TokenKind::Eof {
-            return Err(next.err_there("Invalid expression"));
+    let line = match peek.kind() {
+        TokenKind::Sep(Sep::Comment) => Line::Comment(peek.span().start),
+        TokenKind::Eof => Line::Empty,
+        _ => {
+            let expr = match peek.kind() {
+                TokenKind::Str => Expression::Print(parse_print(&mut lexer)?),
+                _ => Expression::Literal(parser_literal(&mut lexer, 0)?),
+            };
+            dbg!(lexer.next());
+            expect_kind(lexer.next(), TokenKind::Eof, "Uncompleted expression")?;
+            Line::Expr(expr)
         }
-        Ok(Line::Expr(expr))
-    }
+    };
+    Ok(line)
 }
 
 fn expect_kind<'a, 'b>(
@@ -107,16 +109,19 @@ fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
         let token = lexer.next();
 
         buf.push(match token.kind() {
-            TokenKind::Str => Print::Str(token.splice().to_string()),
-            _ => Print::Literal(parser_literal(lexer, 0)?),
-        });
-
-        let next = lexer.peek();
-        match next.kind() {
-            TokenKind::Op(Op::Add) => continue,
+            TokenKind::Str => Print::Str(token.splice().trim_matches('"').to_string()),
+            TokenKind::Sep(Sep::Open) => {
+                let lit = parser_literal(lexer, 0)?;
+                expect_kind(
+                    lexer.next(),
+                    TokenKind::Sep(Sep::Close),
+                    "Missing block end, ')' is missing",
+                )?;
+                Print::Literal(lit)
+            }
             TokenKind::Eof => return Ok(buf),
-            _ => return Err(token.err_there("Expected concat operator +")),
-        }
+            _ => return Err(token.err_there("Expected a block or another string")),
+        });
     }
 }
 
@@ -132,7 +137,7 @@ fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
             expect_kind(
                 lexer.next(),
                 TokenKind::Sep(Sep::Close),
-                "An opened block miss its end, a ')' is missing",
+                "Missing block end ')'",
             )?;
             lhs
         }
@@ -141,13 +146,13 @@ fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
             expect_kind(
                 lexer.next(),
                 TokenKind::Sep(Sep::Open),
-                "A function invocation miss its arguments, a '(' is missing",
+                "Missing function invocation, '(' is missing",
             )?;
             let expr = parser_literal(lexer, 0)?;
             expect_kind(
                 lexer.next(),
                 TokenKind::Sep(Sep::Close),
-                "An function invocation miss its end, a ')' is missing",
+                "Missing function invocation end, ')' is missing",
             )?;
             Literal::Fun(id, Box::new(expr))
         }
