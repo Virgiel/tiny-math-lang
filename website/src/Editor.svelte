@@ -1,19 +1,21 @@
 <script>
   import EditorView from './EditorView.svelte';
   import { newMultilineEditor } from './multineEditor';
-
   import { load } from './wasm';
+
+  let width;
+
   async function editor() {
     await load();
     return newMultilineEditor();
   }
 </script>
 
-<div class="screen">
+<div class="screen" bind:offsetWidth={width}>
   {#await editor()}
     <p>Loading ...</p>
   {:then editor}
-    <EditorView {editor} />
+    <EditorView {editor} sidePanel={width > 700} />
   {/await}
 </div>
 

@@ -45,7 +45,7 @@ const removeSpan = /<\/?span[^>]*>/g;
 
 /** Code editor with multiple editable lines */
 function newMultilineEditor() {
-  let code = defaultCode.repeat(1); // Displayed code
+  let code = defaultCode; // Displayed code
   let linePos = 0; // Cursor line pos
   let charPos = 0; // Cursor char pos
   let offsets = []; // Lines offset in code

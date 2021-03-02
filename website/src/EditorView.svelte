@@ -1,8 +1,9 @@
 <script>
-  import { onMount, tick } from 'svelte';
+  import { onMount } from 'svelte';
   import { offsetInNodeAt } from './offset';
 
   export let editor = null; // Editor logic
+  export let sidePanel = false;
 
   const { lines, pos, onInput, onPos } = editor;
 
@@ -18,6 +19,7 @@
   let averageHeight = 0;
   let sides = [];
   let contents = [];
+  let lineNodes = [];
 
   $: columnWidth = (editorWidth - gutterLen) / 2;
   $: scrollHeight = gradualHeights[gradualHeights.length - 1];
@@ -125,7 +127,7 @@
   }
 
   $: {
-    items, editorHeight;
+    items, editorHeight, sidePanel;
     requestAnimationFrame(handleScroll);
   }
 
@@ -134,15 +136,14 @@
     const { scrollTop } = editorWrapper;
     // Refresh heights
     for (let v = 0; v < visibleRow.length; v++) {
-      heights[firstVisibleRow + v] = Math.max(
-        contents[v].offsetHeight,
-        sides[v].offsetHeight
-      );
+      heights[firstVisibleRow + v] = sidePanel
+        ? Math.max(contents[v].offsetHeight, sides[v].offsetHeight)
+        : lineNodes[v].offsetHeight;
     }
     let i = 0;
     let y = 0;
     // Search first visible row
-    while (i < items.length && y > scrollTop) {
+    while (i < items.length && y + (heights[i] || averageHeight) < scrollTop) {
       y += heights[i] || averageHeight;
       i += 1;
     }
@@ -178,6 +179,7 @@
   onMount(() => {
     contents = editorWrapper.getElementsByClassName('line content');
     sides = editorWrapper.getElementsByClassName('line side');
+    lineNodes = editorWrapper.getElementsByClassName('line');
   });
 </script>
 
@@ -205,56 +207,92 @@
       </div>
     {/each}
   </div>
-  <div
-    class="lines"
-    style="height:{scrollHeight}px; left:{gutterLen}px; width:{columnWidth}px;"
-  >
-    {#each visibleRow as row (row.index)}
-      <p
-        class:selected={row.index == $pos.linePos}
-        class="line content"
-        style="top:{gradualHeights[row.index]}px; left:{-vertScroll + 8}px"
-      >
-        {@html row.data.line.content}
-      </p>
-    {/each}
-    {#if focused}
-      <span
-        class="cursor"
-        style="positon: absolute; top:{cursorPos.y}px; left: {cursorPos.x}px;"
-      />
-    {/if}
-  </div>
-  <div
-    class="verticalScroller"
-    bind:this={contentWrapper}
-    style="height:{editorHeight}px; width:{columnWidth}px; left:{gutterLen}px;"
-    on:scroll={handleVertScroll}
-  >
-    <div class="widthWitness" style="width:{maxLen.content * 9.6 + 32}px;" />
-  </div>
-  <div
-    class="lines side"
-    style="height:{scrollHeight}px; left:{gutterLen +
-      columnWidth}px; width:{columnWidth}px;"
-  >
-    {#each visibleRow as row (row.index)}
-      <p
-        class="line side"
-        style="top: {gradualHeights[row.index]}px; left:{-vertScroll2 + 8}px"
-      >
-        {@html row.data.line.side}
-      </p>
-    {/each}
-  </div>
-  <div
-    class="verticalScroller side"
-    style="height:{editorHeight}px; width:{columnWidth}px; left:{gutterLen +
-      columnWidth}px;"
-    on:scroll={handleVertScroll2}
-  >
-    <div class="widthWitness" style="width:{maxLen.side * 9.6 + 32}px;" />
-  </div>
+  {#if sidePanel}
+    <div
+      class="lines"
+      style="height:{scrollHeight}px; left:{gutterLen}px; width:{columnWidth}px;"
+    >
+      {#each visibleRow as row (row.index)}
+        <p
+          class:selected={row.index == $pos.linePos}
+          class="line content"
+          style="top:{gradualHeights[row.index]}px; left:{-vertScroll + 8}px"
+        >
+          {@html row.data.line.content}
+        </p>
+      {/each}
+      {#if focused}
+        <span
+          class="cursor"
+          style="positon: absolute; top:{cursorPos.y}px; left: {cursorPos.x}px;"
+        />
+      {/if}
+    </div>
+    <div
+      class="verticalScroller"
+      bind:this={contentWrapper}
+      style="height:{editorHeight}px; width:{columnWidth}px; left:{gutterLen}px;"
+      on:scroll={handleVertScroll}
+    >
+      <div class="widthWitness" style="width:{maxLen.content * 9.6 + 32}px;" />
+    </div>
+    <div
+      class="lines side"
+      style="height:{scrollHeight}px; left:{gutterLen +
+        columnWidth}px; width:{columnWidth}px;"
+    >
+      {#each visibleRow as row (row.index)}
+        <p
+          class="line side"
+          style="top: {gradualHeights[row.index]}px; left:{-vertScroll2 + 8}px"
+        >
+          {@html row.data.line.side}
+        </p>
+      {/each}
+    </div>
+    <div
+      class="verticalScroller side"
+      style="height:{editorHeight}px; width:{columnWidth}px; left:{gutterLen +
+        columnWidth}px;"
+      on:scroll={handleVertScroll2}
+    >
+      <div class="widthWitness" style="width:{maxLen.side * 9.6 + 32}px;" />
+    </div>
+  {:else}
+    <div
+      class="lines"
+      style="height:{scrollHeight}px; left:{gutterLen}px; width:{columnWidth *
+        2}px;"
+    >
+      {#each visibleRow as row (row.index)}
+        <p
+          class:selected={row.index == $pos.linePos}
+          class="line content"
+          style="top:{gradualHeights[row.index]}px; left:{-vertScroll + 8}px"
+        >
+          <span class="content">{@html row.data.line.content}</span>
+          {#if row.data.line.side.length > 0}
+            <br /><span class="side"> {@html row.data.line.side}</span>
+          {/if}
+        </p>
+      {/each}
+      {#if focused}
+        <span
+          class="cursor"
+          style="positon: absolute; top:{cursorPos.y}px; left: {cursorPos.x}px;"
+        />
+      {/if}
+    </div>
+    <div
+      class="verticalScroller"
+      bind:this={contentWrapper}
+      style="height:{editorHeight}px; width:{columnWidth *
+        2}px; left:{gutterLen}px;"
+      on:scroll={handleVertScroll}
+    >
+      <div class="widthWitness" style="width:{maxLen.content * 9.6 + 32}px;" />
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -292,6 +330,12 @@
   .lines.side {
     background-color: #333333;
   }
+  span.side {
+    display: block;
+    background-color: #333333;
+    width: 100vw;
+    overflow: visible;
+  }
   .line {
     position: absolute;
     color: var(--foreground);
@@ -310,10 +354,6 @@
     top: 0;
     overflow-x: auto;
     z-index: 666;
-    cursor: text;
-  }
-  .verticalScroller.side {
-    cursor: none;
   }
   .widthWitness {
     height: 40px;
