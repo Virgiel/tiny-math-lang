@@ -106,6 +106,10 @@ mod test {
         assert_compute("2+3*3+4", 15.);
         assert_compute("(2+3)*(3+4)", 35.);
     }
+    #[test]
+    fn test_var() {
+        assert_compute("cos(PI)", -1.);
+    }
 
     #[test]
     fn test_error() {

@@ -54,5 +54,10 @@ pub fn compute_literal(lit: &Literal) -> Result<f64, String> {
                 _ => return Err(format!("Unknown function '{}'", name)),
             }
         }
+        Literal::Var(name) => match name.as_str() {
+            "PI" => std::f64::consts::PI,
+            "E" => std::f64::consts::E,
+            _ => return Err(format!("Unknown variable '{}'", name)),
+        },
     })
 }

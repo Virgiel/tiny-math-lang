@@ -13,6 +13,12 @@ const defaultCode = `
 2+2
 8/(2*(2+2))
 
+# Use constants
+PI
+cos(PI)
+cos(PI/2)
+sin(23*PI)
+
 # Use mathematical function
 cos(5)
 sin(4/8)

@@ -37,9 +37,12 @@ pub fn highlight_code(input: &str) -> String {
                 TokenKind::Op(_) => {
                     write!(buf, "<span class=\"operator\">{}</span>", token.splice()).unwrap()
                 }
-                TokenKind::Id => {
-                    write!(buf, "<span class=\"function\">{}</span>", token.splice()).unwrap()
-                }
+                TokenKind::Id => match lexer.peek().kind() {
+                    TokenKind::Sep(Sep::Open) => {
+                        write!(buf, "<span class=\"function\">{}</span>", token.splice()).unwrap()
+                    }
+                    _ => write!(buf, "<span class=\"variable\">{}</span>", token.splice()).unwrap(),
+                },
                 TokenKind::Str => {
                     write!(buf, "<span class=\"string\">{}</span>", token.splice()).unwrap()
                 }

@@ -32,6 +32,9 @@
     <li>{'Division      '} <LineExec code={'1 / 2'} /></li>
     <li>{'Modulo        '} <LineExec code={'100 % 7'} /></li>
   </ul>
+  <h3>Common constants</h3>
+  <li>{"Archimedes' constantPi (π) "} <LineExec code={'PI'} /></li>
+  <li>{"Euler's number (ℇ)         "} <LineExec code={'E'} /></li>
   <h3>Common functions</h3>
   <ul>
     <li>{'Floor   '} <LineExec code={'floor(10/3)'} /></li>

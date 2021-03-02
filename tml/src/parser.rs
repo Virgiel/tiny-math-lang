@@ -65,6 +65,7 @@ pub enum Literal {
     UnaryOp(UnOp, Box<Literal>),
     BinaryOp(BinOp, Box<(Literal, Literal)>),
     Fun(String, Box<Literal>),
+    Var(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -140,18 +141,20 @@ fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
         }
         TokenKind::Id => {
             let id = token.splice().into();
-            expect_kind(
-                lexer.next(),
-                TokenKind::Sep(Sep::Open),
-                "Missing function invocation '('",
-            )?;
-            let expr = parser_literal(lexer, 0)?;
-            expect_kind(
-                lexer.next(),
-                TokenKind::Sep(Sep::Close),
-                "Missing function invocation end ')'",
-            )?;
-            Literal::Fun(id, Box::new(expr))
+            let peek = lexer.peek();
+            if peek.kind() == TokenKind::Sep(Sep::Open) {
+                lexer.next();
+
+                let expr = parser_literal(lexer, 0)?;
+                expect_kind(
+                    lexer.next(),
+                    TokenKind::Sep(Sep::Close),
+                    "Missing function invocation end ')'",
+                )?;
+                Literal::Fun(id, Box::new(expr))
+            } else {
+                Literal::Var(id)
+            }
         }
         TokenKind::Op(op) => match op.try_into() {
             Ok(op) => {
