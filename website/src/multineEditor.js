@@ -33,7 +33,11 @@ fract(10/3)
 "J'aime le chocolat"
 "Full: "1/3"   Truncated: "trunc(1/3)"    Decimal: "fract(1/3)
 
-# And more is coming soon
+# And now somethings more interesting
+a = 12
+b = 32
+"hypotenuse = sqrt(a*a+b*b)"
+hypotenuse = sqrt(a*a+b*b)
 
 `;
 

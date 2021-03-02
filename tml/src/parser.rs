@@ -55,6 +55,7 @@ impl TryFrom<Op> for BinOp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
+    Assign(String, Literal),
     Literal(Literal),
     Print(Vec<Print>),
 }
@@ -82,6 +83,18 @@ pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
         _ => {
             let expr = match peek.kind() {
                 TokenKind::Str => Expression::Print(parse_print(&mut lexer)?),
+                TokenKind::Id => {
+                    let id = lexer.next().splice();
+                    match lexer.next().kind() {
+                        TokenKind::Op(Op::Eq) => {
+                            Expression::Assign(id.to_string(), parser_literal(&mut lexer, 0)?)
+                        }
+                        _ => {
+                            lexer.reset();
+                            Expression::Literal(parser_literal(&mut lexer, 0)?)
+                        }
+                    }
+                }
                 _ => Expression::Literal(parser_literal(&mut lexer, 0)?),
             };
             expect_kind(lexer.next(), TokenKind::Eof, "Incomplete expression")?;

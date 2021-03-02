@@ -170,4 +170,9 @@ impl<'a> Lexer<'a> {
         }
         self.peeked.as_ref().unwrap()
     }
+
+    pub fn reset(&mut self) {
+        self.offset = 0;
+        self.peeked = None;
+    }
 }

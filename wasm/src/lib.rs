@@ -42,7 +42,8 @@ pub fn highlight(line: &str) -> String {
 /// Highlight multiple lines in a batch
 #[wasm_bindgen]
 pub fn highlight_batch(lines: &str) -> Array {
-    lines.lines()
+    lines
+        .lines()
         .map(|line| JsValue::from_str(&highlight(line)))
         .collect()
 }

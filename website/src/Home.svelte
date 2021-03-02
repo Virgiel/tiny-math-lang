@@ -18,8 +18,12 @@
   <h2>Syntax</h2>
   <h3>Expressions</h3>
   <p><LineExec code={'1+2+3+4+5+6+7+8+9'} /></p>
+  <h3>Functions</h3>
+  <p><LineExec code={'sqrt(49)'} /></p>
+  <h3>Variables</h3>
+  <p><LineExec code={'square49 = sqrt(49)'} /></p>
   <h3>Comments</h3>
-  <Highlighter code={'# This is a comment'} />
+  <Highlighter code={'# This is a useless comment'} />
   <h3>String</h3>
   <p><LineExec code={'"Hello world"'} /></p>
   <p><LineExec code={'"The answer is " 42'} /></p>
@@ -33,8 +37,10 @@
     <li>{'Modulo        '} <LineExec code={'100 % 7'} /></li>
   </ul>
   <h3>Common constants</h3>
-  <li>{"Archimedes' constantPi (π) "} <LineExec code={'PI'} /></li>
-  <li>{"Euler's number (ℇ)         "} <LineExec code={'E'} /></li>
+  <ul>
+    <li>{"Archimedes' constant (π) "} <LineExec code={'PI'} /></li>
+    <li>{"Euler's number (ℇ)       "} <LineExec code={'E'} /></li>
+  </ul>
   <h3>Common functions</h3>
   <ul>
     <li>{'Floor   '} <LineExec code={'floor(10/3)'} /></li>
@@ -64,8 +70,6 @@
   </ul>
   <h2>TO DO</h2>
   <ul>
-    <li>Variables</li>
-    <li>Common constants (PI, MIN, MAX, Epsilon)</li>
     <li>Defined functions?</li>
     <li>Formatter?</li>
   </ul>

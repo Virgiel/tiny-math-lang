@@ -1,11 +1,11 @@
 use crate::lexer::{Lexer, Sep, TokenKind};
 use std::fmt::Write;
 
-pub fn highlight_assign(alias: &str, nb: f64) -> String {
-    format!("<span class=\"variable\">{}</span> <span class=\"operator\">=<span> <span class=\"number\">{}</span>",  alias, nb)
+pub fn highlight_assign(id: &str, nb: f64) -> String {
+    format!("<span class=\"variable\">{}</span> <span class=\"operator\">=<span> <span class=\"number\">{}</span>",  id, nb)
 }
 
-pub fn highlight_no_alias(nb: f64) -> String {
+pub fn highlight_no_id(nb: f64) -> String {
     highlight_assign("λ", nb)
 }
 
