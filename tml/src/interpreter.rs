@@ -1,12 +1,11 @@
-use highlighter::{highlight_no_id, highlight_print};
-
 use crate::{
-    highlighter::{self, highlight_assign},
+    highlight,
     lexer::Lexer,
     parser::{parse, BinOp, Expression, Line, Literal, Print, UnOp},
 };
 use std::{collections::HashMap, fmt::Write};
 
+/** Execution context */
 pub struct Context {
     variables: HashMap<String, f64>,
 }
@@ -27,34 +26,38 @@ impl Context {
     }
 }
 
-/// Compute a line, returning a highlighted result
+/** Compute a line, returning a highlighted result */
 pub fn compute(ctx: &mut Context, input: &str) -> Result<String, String> {
     let lexer = Lexer::load(input);
-    Ok(match parse(lexer)? {
+    let result = match parse(lexer)? {
         Line::Expr(expr) => match expr {
             Expression::Assign(id, lit) => {
                 let nb = compute_literal(ctx, &lit)?;
-                ctx.assign(id.clone(), nb);
-                highlight_assign(&id, nb)
+                ctx.assign(id, nb);
+                "".into()
             }
-            Expression::Literal(lit) => highlight_no_id(compute_literal(ctx, &lit)?),
-            Expression::Print(print) => highlight_print(&compute_print(ctx, &print)?),
+            Expression::Literal(lit) => compute_literal(ctx, &lit)?.to_string(),
+            Expression::Print(print) => compute_print(ctx, &print)?,
         },
-        Line::Empty | Line::Comment(_) => "".to_string(),
-    })
+        Line::Empty | Line::Comment(_) => "".into(),
+    };
+    Ok(highlight(&result))
 }
 
+/** Compute a print expression, concatenate raw string with literal expression result */
 fn compute_print(ctx: &mut Context, print: &[Print]) -> Result<String, String> {
-    let mut buf = String::new();
+    let mut buf = String::from("\"");
     for item in print {
         match item {
             Print::Literal(lit) => write!(buf, "{}", compute_literal(ctx, &lit)?).unwrap(),
             Print::Str(str) => buf.push_str(&str),
         }
     }
+    buf.push('\"');
     Ok(buf)
 }
 
+/** Compute a literal expression, perform calculation */
 fn compute_literal(ctx: &mut Context, lit: &Literal) -> Result<f64, String> {
     Ok(match lit {
         Literal::Nb(nb) => *nb,
@@ -117,7 +120,7 @@ mod test {
     use crate::lexer::Lexer;
     use crate::parser::parse;
     use crate::parser::Expression;
-    use crate::{exec_line, highlighter::highlight_code, parser::Line};
+    use crate::{exec_line, highlighter::highlight, parser::Line};
 
     fn assert_compute(str: &str, nb: f64) {
         let parsed = parse(Lexer::load(str));
@@ -219,19 +222,19 @@ mod test {
 
     #[test]
     fn test_print() {
-        assert_print("\"I Love Chocolate\"", "I Love Chocolate");
-        assert_print("   \"I Love Chocolate\"  ", "I Love Chocolate");
-        assert_print("\"I am \"18\" year old\"  ", "I am 18 year old");
-        assert_print("\"I am \"18\" year old\"42", "I am 18 year old42");
+        assert_print("\"I Love Chocolate\"", "\"I Love Chocolate\"");
+        assert_print("   \"I Love Chocolate\"  ", "\"I Love Chocolate\"");
+        assert_print("\"I am \"18\" year old\"  ", "\"I am 18 year old\"");
+        assert_print("\"I am \"18\" year old\"42", "\"I am 18 year old42\"");
         assert_print(
             "\"A\"\"B\"42\"C\"log2(345)+(5/9)*19-2\"Chocolate\"",
-            "AB42C16.98600810722109Chocolate",
+            "\"AB42C16.98600810722109Chocolate\"",
         );
     }
 
     #[test]
     fn test_support_unicode() {
-        highlight_code("1+1°");
-        highlight_code("あさきゆめみしゑひもせす");
+        highlight("1+1°");
+        highlight("あさきゆめみしゑひもせす");
     }
 }

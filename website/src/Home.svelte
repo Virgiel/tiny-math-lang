@@ -1,7 +1,6 @@
 <script>
   import { link } from 'svelte-routing';
   import LineExec from './LineExec.svelte';
-  import Highlighter from './Highlighter.svelte';
 </script>
 
 <div class="header">
@@ -23,7 +22,7 @@
   <h3>Variables</h3>
   <p><LineExec code={'square49 = sqrt(49)'} /></p>
   <h3>Comments</h3>
-  <Highlighter code={'# This is a useless comment'} />
+  <LineExec code={'# This is a useless comment'} />
   <h3>String</h3>
   <p><LineExec code={'"Hello world"'} /></p>
   <p><LineExec code={'"The answer is " 42'} /></p>

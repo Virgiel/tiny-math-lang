@@ -36,8 +36,9 @@ fract(10/3)
 # And now somethings more interesting
 a = 12
 b = 32
+"a = "a" & b = "b
 "hypotenuse = sqrt(a*a+b*b)"
-hypotenuse = sqrt(a*a+b*b)
+"hypotenuse = "sqrt(a*a+b*b)
 
 `;
 

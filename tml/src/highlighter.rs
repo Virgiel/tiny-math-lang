@@ -1,25 +1,14 @@
 use crate::lexer::{Lexer, Sep, TokenKind};
 use std::fmt::Write;
 
-pub fn highlight_assign(id: &str, nb: f64) -> String {
-    format!("<span class=\"variable\">{}</span> <span class=\"operator\">=<span> <span class=\"number\">{}</span>",  id, nb)
-}
-
-pub fn highlight_no_id(nb: f64) -> String {
-    highlight_assign("λ", nb)
-}
-
-pub fn highlight_print(print: &str) -> String {
-    format!("<span class=\"string\">{}</span>", print)
-}
-
-pub fn highlight_code(input: &str) -> String {
-    let mut lexer = Lexer::load(input);
+/** Insert html span to style code token */
+pub fn highlight(code: &str) -> String {
+    let mut lexer = Lexer::load(code);
     let peek = lexer.peek();
     if peek.kind() == TokenKind::Eof {
         "".into()
     } else if peek.kind() == TokenKind::Sep(Sep::Comment) {
-        format!("<span class=\"comment\">{}</span>", input)
+        format!("<span class=\"comment\">{}</span>", code)
     } else {
         let mut buf = String::new();
         let mut c = 0;
@@ -27,7 +16,7 @@ pub fn highlight_code(input: &str) -> String {
             let token = lexer.next();
             let span = token.span();
             if c < span.start {
-                buf.push_str(&input[c..span.start]);
+                buf.push_str(&code[c..span.start]);
             }
             c = span.end;
             match token.kind() {

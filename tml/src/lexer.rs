@@ -1,7 +1,7 @@
 use std::ops::Range;
 
-/// This is a pull lexer responsible for finding tokens in a code line.
-/// It is designed to not allocate any memory.
+/** This is a pull lexer responsible for finding tokens in a code line.
+It is designed to not allocate any memory. */
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Op {
@@ -82,7 +82,7 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    /// Init the lexer at the beginning of a source
+    /** Init the lexer at the beginning of a source */
     pub fn load(source: &'a str) -> Lexer {
         Lexer {
             source,
@@ -91,7 +91,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Lex the next token
+    /** Lex the next token */
     fn lex_next(&mut self) -> Token<'a> {
         let chars = self.source.get(self.offset..).unwrap_or("").char_indices();
 
@@ -126,7 +126,7 @@ impl<'a> Lexer<'a> {
                     let end = match chars.next() {
                         Some((i, c)) => match c {
                             '.' => {
-                                // The number is in two part, apply same logic for the second part
+                                // The number is in two part, apply same to for the second part
                                 chars
                                     .find(|(_, c)| !c.is_ascii_digit())
                                     .map(|(i, _)| i + self.offset)
@@ -140,7 +140,7 @@ impl<'a> Lexer<'a> {
                     (TokenKind::Nb, start..end)
                 }
                 c if c.is_alphabetic() => {
-                    // Search en of id
+                    // Search end of id
                     let end = chars
                         .find(|(_, c)| !c.is_alphanumeric())
                         .map(|(i, _)| i + self.offset)
@@ -158,12 +158,12 @@ impl<'a> Lexer<'a> {
         return Token::new(self.source, kind, range);
     }
 
-    /// Return the next token moving forward
+    /** Return the next token moving forward */
     pub fn next(&mut self) -> Token<'a> {
         self.peeked.take().unwrap_or_else(|| self.lex_next())
     }
 
-    /// Return the next token without moving
+    /** Return the next token without moving */
     pub fn peek(&mut self) -> &Token<'a> {
         if let None = self.peeked {
             self.peeked = Some(self.lex_next());
@@ -171,6 +171,7 @@ impl<'a> Lexer<'a> {
         self.peeked.as_ref().unwrap()
     }
 
+    /** Return at the beginning of the source */
     pub fn reset(&mut self) {
         self.offset = 0;
         self.peeked = None;
