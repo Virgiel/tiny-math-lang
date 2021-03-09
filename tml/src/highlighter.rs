@@ -42,3 +42,15 @@ pub fn highlight(code: &str) -> String {
         }
     }
 }
+#[cfg(test)]
+mod test {
+    use crate::highlight;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        fn highlight_anything(s: String) {
+            highlight(&s);
+        }
+    }
+}

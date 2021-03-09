@@ -120,7 +120,8 @@ mod test {
     use crate::lexer::Lexer;
     use crate::parser::parse;
     use crate::parser::Expression;
-    use crate::{exec_line, highlighter::highlight, parser::Line};
+    use crate::{exec_line, parser::Line};
+    use proptest::prelude::*;
 
     fn assert_compute(str: &str, nb: f64) {
         let parsed = parse(Lexer::load(str));
@@ -232,9 +233,50 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_support_unicode() {
-        highlight("1+1°");
-        highlight("あさきゆめみしゑひもせす");
+    prop_compose! {
+        fn arb_nb()(nb in any::<u8>(), op in "[+-]?") -> String {
+            format!("{}{}", op, nb)
+        }
+    }
+    prop_compose! {
+        fn arb_var()(var in "PI|E", op in "[+-]?") -> String {
+            format!("{}{}", op, var)
+        }
+    }
+    fn arb_lit() -> impl Strategy<Value = String> {
+        let leaf = prop_oneof![
+            4 => arb_nb(),
+            1 => arb_var(),
+        ];
+        leaf.prop_recursive(10, 1000, 1, |inner| {
+            prop_oneof![
+                1 => inner.clone().prop_map(|lit| format!("({})", lit)),
+                4 => (inner.clone(), inner.clone(), "[+/-/*//%]")
+                    .prop_map(|(a, b, op)| format!("{}{}{}", a, op, b)),
+                2 => (inner, "floor|ceil|round|trunc|fract|sqrt|exp|ln|log2|log10|cos|sin|tan|acos|asin|atan").prop_map(|(lit, fun)| format!("{}({})", fun, lit))
+            ]
+        })
+    }
+    proptest! {
+        #[test]
+        fn execute_anything(s: String) {
+            exec_line(&s).ok();
+        }
+
+        #[test]
+        fn execute_lit(nb in arb_lit()) {
+        let parsed = parse(Lexer::load(&nb));
+        assert!(parsed.is_ok(), "{:?}", parsed);
+        let expr = match parsed.unwrap() {
+            Line::Expr(it) => it,
+            _ => unreachable!(),
+        };
+        let lit = match expr {
+            Expression::Literal(lit) => lit,
+            _ => unreachable!(),
+        };
+        let result = compute_literal(&mut Context::empty(), &lit);
+        assert!(result.is_ok(), "{:?}", result);
+        }
     }
 }
