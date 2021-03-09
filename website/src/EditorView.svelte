@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { offsetInNodeAt } from './offset';
 
   export let editor = null; // Editor logic
@@ -19,7 +19,7 @@
   let averageHeight = 0;
   let sides = [];
   let contents = [];
-  let lineNodes = [];
+  let pairs = [];
 
   $: columnWidth = (editorWidth - gutterLen) / 2;
   $: scrollHeight = gradualHeights[gradualHeights.length - 1];
@@ -49,7 +49,8 @@
     y: gradualHeights[$pos.linePos] || 0,
     x:
       (Math.min($pos.charPos, $lines[$pos.linePos].contentLen) + 1) * 9.6 -
-      vertScroll,
+      scrollAmount +
+      8,
   };
   $: {
     $pos;
@@ -126,19 +127,27 @@
     onPos(linePos, charPos);
   }
 
+  let programmed = false;
   $: {
     items, editorHeight, sidePanel;
-    requestAnimationFrame(handleScroll);
+    if (!programmed) {
+      programmed = true;
+      requestAnimationFrame(async () => {
+        await handleScroll();
+        programmed = false;
+      });
+    }
   }
 
   /** Keep visible row range in sync using the cached heights */
   async function handleScroll() {
     const { scrollTop } = editorWrapper;
+    await tick();
     // Refresh heights
     for (let v = 0; v < visibleRow.length; v++) {
       heights[firstVisibleRow + v] = sidePanel
         ? Math.max(contents[v].offsetHeight, sides[v].offsetHeight)
-        : lineNodes[v].offsetHeight;
+        : pairs[v].offsetHeight;
     }
     let i = 0;
     let y = 0;
@@ -167,19 +176,19 @@
     gradualHeights[items.length] = sum;
   }
 
-  let vertScroll = 0;
-  let vertScroll2 = 0;
-  function handleVertScroll(e) {
-    vertScroll = e.target.scrollLeft;
+  let scrollAmount = 0;
+  let scrollAmount2 = 0;
+  function onVirtScroll(e) {
+    scrollAmount = e.target.scrollLeft;
   }
-  function handleVertScroll2(e) {
-    vertScroll2 = e.target.scrollLeft;
+  function onVirtScroll2(e) {
+    scrollAmount2 = e.target.scrollLeft;
   }
 
   onMount(() => {
     contents = editorWrapper.getElementsByClassName('line content');
     sides = editorWrapper.getElementsByClassName('line side');
-    lineNodes = editorWrapper.getElementsByClassName('line');
+    pairs = editorWrapper.getElementsByClassName('pair');
   });
 </script>
 
@@ -207,88 +216,74 @@
       </div>
     {/each}
   </div>
-  {#if sidePanel}
-    <div
-      class="lines"
-      style="height:{scrollHeight}px; left:{gutterLen}px; width:{columnWidth}px;"
-    >
+  <div class="lines" style="height:{scrollHeight}px; left:{gutterLen}px;">
+    {#if sidePanel}
       {#each visibleRow as row (row.index)}
-        <p
+        <div
+          class="pair line content"
           class:selected={row.index == $pos.linePos}
-          class="line content"
-          style="top:{gradualHeights[row.index]}px; left:{-vertScroll + 8}px"
+          style="top:{gradualHeights[row.index]}px;"
         >
-          {@html row.data.line.content}
-        </p>
+          <span style="position:relative; left:{-scrollAmount + 8}px">
+            {@html row.data.line.content}
+          </span>
+        </div>
+        <div
+          class="pair line side"
+          style="top: {gradualHeights[row.index]}px; left:{columnWidth}px"
+        >
+          <span style="position:relative; left:{-scrollAmount2 + 8}px">
+            {@html row.data.line.side}
+          </span>
+        </div>
       {/each}
-      {#if focused}
-        <span
-          class="cursor"
-          style="positon: absolute; top:{cursorPos.y}px; left: {cursorPos.x}px;"
-        />
-      {/if}
-    </div>
+    {:else}
+      {#each visibleRow as row (row.index)}
+        <div class="pair" style="top:{gradualHeights[row.index]}px;">
+          <div class="line content" class:selected={row.index == $pos.linePos}>
+            <span style="position:relative; left:{-scrollAmount + 8}px">
+              {@html row.data.line.content}
+            </span>
+          </div>
+          {#if row.data.line.side.length > 0}
+            <div class="line side" style="left:{columnWidth}px">
+              <span style="position:relative; left:{-scrollAmount + 8}px">
+                {@html row.data.line.side}
+              </span>
+            </div>
+          {/if}
+        </div>
+      {/each}
+    {/if}
+    {#if focused}
+      <span
+        class="cursor"
+        style="positon: absolute; top:{cursorPos.y}px; left: {cursorPos.x}px;"
+      />
+    {/if}
+  </div>
+  {#if sidePanel}
     <div
       class="verticalScroller"
       bind:this={contentWrapper}
-      style="height:{editorHeight}px; width:{columnWidth}px; left:{gutterLen}px;"
-      on:scroll={handleVertScroll}
+      style="width:{columnWidth}px; left:{gutterLen}px;"
+      on:scroll={onVirtScroll}
     >
       <div class="widthWitness" style="width:{maxLen.content * 9.6 + 32}px;" />
     </div>
     <div
-      class="lines side"
-      style="height:{scrollHeight}px; left:{gutterLen +
-        columnWidth}px; width:{columnWidth}px;"
-    >
-      {#each visibleRow as row (row.index)}
-        <p
-          class="line side"
-          style="top: {gradualHeights[row.index]}px; left:{-vertScroll2 + 8}px"
-        >
-          {@html row.data.line.side}
-        </p>
-      {/each}
-    </div>
-    <div
-      class="verticalScroller side"
-      style="height:{editorHeight}px; width:{columnWidth}px; left:{gutterLen +
-        columnWidth}px;"
-      on:scroll={handleVertScroll2}
+      class="verticalScroller"
+      style="width:{columnWidth}px; left:{gutterLen + columnWidth}px;"
+      on:scroll={onVirtScroll2}
     >
       <div class="widthWitness" style="width:{maxLen.side * 9.6 + 32}px;" />
     </div>
   {:else}
     <div
-      class="lines"
-      style="height:{scrollHeight}px; left:{gutterLen}px; width:{columnWidth *
-        2}px;"
-    >
-      {#each visibleRow as row (row.index)}
-        <p
-          class:selected={row.index == $pos.linePos}
-          class="line content"
-          style="top:{gradualHeights[row.index]}px; left:{-vertScroll + 8}px"
-        >
-          <span class="content">{@html row.data.line.content}</span>
-          {#if row.data.line.side.length > 0}
-            <br /><span class="side"> {@html row.data.line.side}</span>
-          {/if}
-        </p>
-      {/each}
-      {#if focused}
-        <span
-          class="cursor"
-          style="positon: absolute; top:{cursorPos.y}px; left: {cursorPos.x}px;"
-        />
-      {/if}
-    </div>
-    <div
       class="verticalScroller"
       bind:this={contentWrapper}
-      style="height:{editorHeight}px; width:{columnWidth *
-        2}px; left:{gutterLen}px;"
-      on:scroll={handleVertScroll}
+      style="width:{columnWidth * 2}px; left:{gutterLen}px;"
+      on:scroll={onVirtScroll}
     >
       <div class="widthWitness" style="width:{maxLen.content * 9.6 + 32}px;" />
     </div>
@@ -318,6 +313,9 @@
     padding: 0 8px;
     z-index: 1;
   }
+  .selected {
+    background: var(--highlight);
+  }
   .gutter-item {
     position: absolute;
   }
@@ -326,34 +324,29 @@
     top: 0;
     padding-left: 8px;
     overflow: hidden;
+    width: 100%;
   }
-  .lines.side {
+  .line.side {
     background-color: #333333;
   }
-  span.side {
-    display: block;
-    background-color: #333333;
-    width: 100vw;
-    overflow: visible;
+  .pair {
+    position: absolute;
+    width: 100%;
   }
   .line {
-    position: absolute;
     color: var(--foreground);
-    margin: 0;
     width: 100%;
-    padding-right: 6px;
     line-height: 20px;
     min-height: 20px;
     white-space: pre;
-  }
-  .line.selected {
-    background: var(--highlight);
+    overflow: hidden;
   }
   .verticalScroller {
     position: sticky;
     top: 0;
     overflow-x: auto;
     z-index: 666;
+    height: 100%;
   }
   .widthWitness {
     height: 40px;
