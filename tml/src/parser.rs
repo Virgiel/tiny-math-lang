@@ -2,6 +2,9 @@ use std::convert::{TryFrom, TryInto};
 
 use crate::lexer::{Lexer, Op, Sep, Token, TokenKind};
 
+/** The parser is responsible to line into usable type. The design is inspired by the following
+excellent article: https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html  */
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Line {
     Expr(Expression),
@@ -75,6 +78,7 @@ pub enum Print {
     Str(String),
 }
 
+/** Parse a line from tokens */
 pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
     let peek = lexer.peek();
     let line = match peek.kind() {
@@ -104,6 +108,7 @@ pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
     Ok(line)
 }
 
+/** Check token's kind */
 fn expect_kind<'a, 'b>(
     token: Token<'a>,
     kind: TokenKind,
@@ -116,6 +121,7 @@ fn expect_kind<'a, 'b>(
     }
 }
 
+/** Parse a print parts from tokens */
 fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
     let mut buf = Vec::new();
     loop {
@@ -136,6 +142,7 @@ fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
     }
 }
 
+/** Parse a literal from tokens */
 fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
     let token = lexer.next();
     let mut lhs = match token.kind() {

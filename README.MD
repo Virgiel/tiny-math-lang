@@ -2,7 +2,7 @@
 
 This project is a small experimentation with a mathematical language.
 
-WORK IN PROGRESS
+**WORK IN PROGRESS**
 
 ## Organisation
 
@@ -12,9 +12,36 @@ WORK IN PROGRESS
 
 ## TML implementation
 
-### The lexer
+![Implementation pipeline](./doc/pipeline.drawio.svg)
 
-### The parser
+### Lexer
+
+The role of the lexer is to find tokens in raw code. A token is a slice of UTF-8
+characters associated with a kind (operator, number, etc.). The lexer is pull
+designed making it allocation free.
+
+### Highlighter
+
+The role of the highlighter is to generate styled HTML from tokens.
+
+### Parser
+
+The role of the parser is to interpret tokens as a line. There is three types of
+lines :
+
+- _Expression_ when the line is interpretable
+- _Comment_ when the line should be ignored
+- _Empty_ when the line is empty
+
+There is two type of expression based on what is returned :
+
+- _Literal_ when a number is generated
+- _Assign_ when a number is stored
+- _Print_ when a string is generated
+
+### Interpreter
+
+The role of the interpreter is to perform operations encoded in expression.
 
 ## Code Editor
 
@@ -47,11 +74,10 @@ scroller scrolling amount using styling.
 
 ### Position the cursor
 
-There is no easy way to compute text rendering length, It is why we have
-sometimes to rely on the monospaces characteristic of code font to compute
-length. This is how we estimate internal width of virtual scrollers and the
-position of the cursor.
-
-When the user click on editable code, we use a less performant but more precise
-technique using the Range API. We iterate on every character until we found the
-one under the pointer.
+Even if code font are most of the type monospaced, if you want to support UTF-8
+there will always be variable length characters. This is a problem because there
+is no easy way to compute text rendering length in the DOM. The editor heavily
+use the expensive Range API to position cursor and find cursor position from
+user input. When it is not possible to use Range (e.g estimate the width of the
+widest line) we fallback to using lossy estimation based on arbitrary size. We
+are working on removing all those fallbacks.

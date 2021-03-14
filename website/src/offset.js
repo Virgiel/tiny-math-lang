@@ -1,3 +1,7 @@
+/*
+ Compute position and text offset independently of char width using Range API
+*/
+
 /** Find the text offset of this position in a text node */
 function offsetInTextAt(text, x, y) {
   const range = document.createRange();

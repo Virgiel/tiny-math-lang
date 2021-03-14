@@ -11,7 +11,7 @@ pub fn start() {
     console_error_panic_hook::set_once();
 }
 
-/// Execute a single line
+/** Execute a single line */
 #[wasm_bindgen]
 pub fn execute(line: &str) -> String {
     match tml::exec_line(line) {
@@ -20,7 +20,7 @@ pub fn execute(line: &str) -> String {
     }
 }
 
-/// Execute multiple line in a batch
+/** Execute multiple line in a batch */
 #[wasm_bindgen]
 pub fn execute_batch(lines: &str) -> Array {
     tml::exec_batch(lines)
@@ -33,13 +33,13 @@ pub fn execute_batch(lines: &str) -> Array {
         .collect()
 }
 
-/// Highlight single line
+/** Highlight single line */
 #[wasm_bindgen]
 pub fn highlight(line: &str) -> String {
     tml::highlight(line)
 }
 
-/// Highlight multiple lines in a batch
+/** Highlight multiple lines in a batch */
 #[wasm_bindgen]
 pub fn highlight_batch(lines: &str) -> Array {
     lines

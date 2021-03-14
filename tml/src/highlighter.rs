@@ -1,7 +1,7 @@
 use crate::lexer::{Lexer, Sep, TokenKind};
 use std::fmt::Write;
 
-/** Insert html span to style code token */
+/** Generate styled HTML */
 pub fn highlight(code: &str) -> String {
     let mut lexer = Lexer::load(code);
     let peek = lexer.peek();
