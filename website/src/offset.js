@@ -35,4 +35,38 @@ function offsetInNodeAt(node, x, y) {
   return -1;
 }
 
-export { offsetInNodeAt };
+/** Find the bounding rect at offset in a text node */
+function rectInTextAt(text, offset) {
+  const range = document.createRange();
+  const nbChar = text.textContent.length;
+  // CHeck contains
+  if (offset <= nbChar) {
+    range.setStart(text, offset);
+    range.setEnd(text, offset);
+    return range.getBoundingClientRect();
+  } else {
+    return null;
+  }
+}
+
+/** Find the bounding rect at offset in a any node */
+function rectInNodeAt(node, offset) {
+  if (node.nodeName === '#text') {
+    // In text search
+    return rectInTextAt(node, offset);
+  } else {
+    // In child search
+    for (const child of node.childNodes) {
+      const result = rectInNodeAt(child, offset);
+      if (result) {
+        return result;
+      } else {
+        // Remember searched child
+        offset -= child.textContent.length;
+      }
+    }
+  }
+  return null;
+}
+
+export { offsetInNodeAt, rectInNodeAt };

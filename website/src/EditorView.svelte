@@ -1,6 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte';
-  import { offsetInNodeAt } from './offset';
+  import { offsetInNodeAt, rectInNodeAt } from './offset';
 
   export let editor = null; // Editor logic
   export let sidePanel = false;
@@ -20,6 +20,7 @@
   let sides = [];
   let contents = [];
   let pairs = [];
+  let cursorPos = { x: 0, y: 0 };
 
   $: columnWidth = (editorWidth - gutterLen) / 2;
   $: scrollHeight = gradualHeights[gradualHeights.length - 1];
@@ -45,17 +46,6 @@
     .map((item, i) => {
       return { index: i + firstVisibleRow, data: item };
     });
-  $: cursorPos = {
-    y: gradualHeights[$pos.linePos] || 0,
-    x:
-      (Math.min($pos.charPos, $lines[$pos.linePos].contentLen) + 1) * 9.6 -
-      scrollAmount +
-      8,
-  };
-  $: {
-    $pos;
-    requestAnimationFrame(syncScroll);
-  }
 
   /** Ensure cursor visibility, adjusting scroll if necessary */
   function syncScroll() {
@@ -127,15 +117,41 @@
     onPos(linePos, charPos);
   }
 
-  let programmed = false;
   $: {
-    items, editorHeight, sidePanel;
-    if (!programmed) {
-      programmed = true;
-      requestAnimationFrame(async () => {
-        await handleScroll();
-        programmed = false;
-      });
+    $pos, scrollAmount;
+    syncCursor();
+  }
+
+  async function syncCursor() {
+    await tick();
+    const line = contents[$pos.linePos - firstVisibleRow];
+    if (line) {
+      const offset = Math.min(line.textContent.length, $pos.charPos);
+      const rect = rectInNodeAt(line, offset);
+      let x = 0;
+      if (rect) {
+        x = rect.x - gutterLen + 2;
+      } else {
+        x = line.getBoundingClientRect().left + 8 - gutterLen + 2;
+      }
+      cursorPos = {
+        y: gradualHeights[$pos.linePos],
+        x,
+      };
+      await tick();
+      syncScroll();
+    }
+  }
+
+  $: {
+    $pos;
+    syncScroll();
+  }
+
+  $: {
+    lines, editorHeight;
+    if (editorWrapper) {
+      handleScroll();
     }
   }
 
@@ -189,6 +205,8 @@
     contents = editorWrapper.getElementsByClassName('line content');
     sides = editorWrapper.getElementsByClassName('line side');
     pairs = editorWrapper.getElementsByClassName('pair');
+    handleScroll();
+    requestAnimationFrame(handleScroll);
   });
 </script>
 
