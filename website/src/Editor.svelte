@@ -2,9 +2,11 @@
   import { onMount } from 'svelte';
   import { CodeJar } from 'codejar';
   import { load } from './wasm';
+  import LineExec from './LineExec.svelte';
 
   let editor;
-  let result = 'Loading...';
+  let result;
+  let resultContent = 'Loading...';
 
   const defaultCode = `
 # Welcome into the Tiny Mathematic Language online editor
@@ -45,7 +47,8 @@ b = 32
 "hypotenuse = "sqrt(a*a+b*b)
 
 `;
-  let lineHeight = [];
+
+  let editorGutter = '';
 
   onMount(() => {
     load().then(wasm => {
@@ -54,46 +57,52 @@ b = 32
         if (!isInit) {
           editor.style.whiteSpace = 'pre';
           editor.style.resize = 'none';
+          editor.style.overflow = 'visible';
         }
+        let gutter = '';
         editor.innerHTML = wasm
           .highlight_batch(editor.textContent)
           .map((line, idx) => {
-            let height = lineHeight[idx] | 1;
-            if (height > 1) {
-              return (
-                line +
-                `<span class="spacer" style="line-height:${
-                  height * 20
-                }px;">\n</span>`
-              );
-            } else {
-              return line + '\n';
-            }
-          })
-          .join('');
-      });
-      const onUpdate = code => {
-        result = wasm
-          .execute_batch(code)
-          .map((line, idx) => {
-            lineHeight[idx] = line.split('\n').length;
+            gutter += `${idx}\n`;
             return line;
           })
           .join('\n');
-        console.log(lineHeight);
+        editorGutter = gutter;
+      });
+      const onUpdate = code => {
+        resultContent = wasm.execute_batch(code).join('\n');
       };
       jar.onUpdate(onUpdate);
       onUpdate(defaultCode);
     });
   });
+
+  let isSyncing = false;
+  function syncScroll(e) {
+    if (isSyncing) {
+      isSyncing = false;
+      return;
+    }
+    const target = e.target;
+    const scrollRate = target.scrollTop / target.scrollHeight;
+    const other = target.classList.contains('editor') ? result : editor;
+    other.scrollTop = scrollRate * other.scrollHeight;
+    isSyncing = true;
+  }
 </script>
 
 <div class="screen">
-  <div class="editor" bind:this={editor} resize="none">
-    {defaultCode}
+  <div class="wrapper">
+    <div class="gutter">{editorGutter}</div>
+    <div class="editor" bind:this={editor} on:scroll={syncScroll} resize="none">
+      {defaultCode}
+    </div>
   </div>
-  <div class="result">
-    {@html result}
+  <div class="wrapper bg">
+    <div class="gutter bg">{editorGutter}</div>
+    <div class="result" bind:this={result} on:scroll={syncScroll}>
+      {@html resultContent}
+    </div>
   </div>
 </div>
 
@@ -103,29 +112,33 @@ b = 32
     height: 100vh;
     width: 100vw;
     flex-flow: row;
-  }
-  .screen * {
-    height: 100vh;
-    width: 50vw;
+    line-height: 20px;
+    tab-size: 4;
+    white-space: pre;
   }
 
   @media (max-width: 800px) {
     .screen {
       flex-flow: column;
     }
-    .screen * {
-      height: 50vh;
-      width: 100vw;
-    }
   }
-  .screen * {
+  .gutter {
+    height: 100%;
+    position: sticky;
+    left: 0;
+    padding: 0 8px;
+    background: var(--background);
+    color: var(--grey);
+  }
+  .wrapper {
+    width: 100%;
+    height: 100%;
     overflow: auto;
-    line-height: 20px;
-    padding: 10px;
-    tab-size: 4;
-    white-space: pre;
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
   }
-  .result {
+  .bg {
     background-color: #333333;
   }
   div::-webkit-scrollbar-track {
@@ -133,6 +146,7 @@ b = 32
   }
   div::-webkit-scrollbar {
     width: 12px;
+    height: 12px;
   }
   div::-webkit-scrollbar-corner {
     background-color: #92837490;
