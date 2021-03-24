@@ -1,5 +1,4 @@
 use crate::{
-    highlight,
     lexer::Lexer,
     parser::{parse, BinOp, Expression, Line, Literal, Print, UnOp},
 };
@@ -26,7 +25,7 @@ impl Context {
     }
 }
 
-/** Compute a line, returning a highlighted result */
+/** Compute a line, returning a formatted result */
 pub fn compute(ctx: &mut Context, input: &str) -> Result<String, String> {
     let lexer = Lexer::load(input);
     let result = match parse(lexer)? {
@@ -41,7 +40,7 @@ pub fn compute(ctx: &mut Context, input: &str) -> Result<String, String> {
         },
         Line::Empty | Line::Comment(_) => "".into(),
     };
-    Ok(highlight(&result))
+    Ok(result)
 }
 
 /** Compute a print expression, concatenate raw string with literal expression result */
@@ -116,11 +115,11 @@ fn compute_literal(ctx: &mut Context, lit: &Literal) -> Result<f64, String> {
 
 #[cfg(test)]
 mod test {
-    use crate::interpreter::{compute_literal, compute_print, Context};
+    use crate::interpreter::{compute, compute_literal, compute_print, Context};
     use crate::lexer::Lexer;
     use crate::parser::parse;
     use crate::parser::Expression;
-    use crate::{exec_line, parser::Line};
+    use crate::parser::Line;
     use proptest::prelude::*;
 
     fn assert_compute(str: &str, nb: f64) {
@@ -156,7 +155,14 @@ mod test {
     }
 
     fn assert_fail(str: &str) {
-        assert!(exec_line(str).is_err(), "{:?}", exec_line(str))
+        let mut context = Context::empty();
+        let result = compute(&mut context, str);
+        assert!(result.is_err(), "{:?}", result)
+    }
+
+    fn compute_no_context(str: &str) -> Result<String, String> {
+        let mut context = Context::empty();
+        compute(&mut context, str)
     }
 
     #[test]
@@ -217,8 +223,8 @@ mod test {
 
     #[test]
     fn test_lines() {
-        assert_eq!(exec_line("").unwrap(), "");
-        assert_eq!(exec_line("# I love chocolate").unwrap(), "");
+        assert_eq!(compute_no_context("").unwrap(), "");
+        assert_eq!(compute_no_context("# I love chocolate").unwrap(), "");
     }
 
     #[test]
@@ -260,7 +266,7 @@ mod test {
     proptest! {
         #[test]
         fn execute_anything(s: String) {
-            exec_line(&s).ok();
+            compute_no_context(&s).ok();
         }
 
         #[test]
