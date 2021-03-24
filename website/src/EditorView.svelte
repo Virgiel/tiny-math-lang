@@ -5,6 +5,28 @@
   export let editor = null; // Editor logic
   export let sidePanel = false;
 
+  function debounceAnimate(fun) {
+    let isProgrammed = false;
+    let isWanted = false;
+    const request = () => {
+      if (!isProgrammed) {
+        isProgrammed = true;
+        isWanted = false;
+        requestAnimationFrame(() => {
+          fun();
+          isProgrammed = false;
+          if (isWanted) {
+            isWanted = false;
+            request();
+          }
+        });
+      } else {
+        isWanted = true;
+      }
+    };
+    return request;
+  }
+
   const { lines, pos, onInput, onPos } = editor;
 
   let firstVisibleRow = 0;
@@ -21,31 +43,32 @@
   let contents = [];
   let pairs = [];
   let cursorPos = { x: 0, y: 0 };
+  let items = [];
+  let gutterLen = 0;
+  let scrollHeight = 0;
+  let maxLen = 0;
+  let visibleRow = [];
 
   $: columnWidth = (editorWidth - gutterLen) / 2;
-  $: scrollHeight = gradualHeights[gradualHeights.length - 1];
-  $: items = $lines.map((line, index) => {
-    let lineNbLen = Math.floor(Math.log10($lines.length)) + 1;
-    let nb = '' + index;
-    return {
-      line: line,
-      gutter: ' '.repeat(lineNbLen - nb.length) + nb,
-    };
-  });
-  $: gutterLen = (Math.floor(Math.log10($lines.length)) + 1) * 9.6 + 16;
-  $: maxLen = $lines.reduce(
-    (max, line) => {
-      max.content = Math.max(max.content, line.contentLen);
-      max.side = Math.max(max.side, line.sideLen);
-      return max;
-    },
-    { content: 0, side: 0 }
-  );
-  $: visibleRow = items
-    .slice(firstVisibleRow, lastVisibleRow)
-    .map((item, i) => {
-      return { index: i + firstVisibleRow, data: item };
+  $: {
+    items = $lines.map((line, index) => {
+      let lineNbLen = Math.floor(Math.log10($lines.length)) + 1;
+      let nb = '' + index;
+      return {
+        line: line,
+        gutter: ' '.repeat(lineNbLen - nb.length) + nb,
+      };
     });
+    gutterLen = (Math.floor(Math.log10($lines.length)) + 1) * 9.6 + 16;
+    maxLen = $lines.reduce(
+      (max, line) => {
+        max.content = Math.max(max.content, line.contentLen);
+        max.side = Math.max(max.side, line.sideLen);
+        return max;
+      },
+      { content: 0, side: 0 }
+    );
+  }
 
   /** Ensure cursor visibility, adjusting scroll if necessary */
   function syncScroll() {
@@ -108,7 +131,7 @@
         y -= height;
       }
     }
-    return items.length;
+    return $lines.length;
   }
 
   function click(e) {
@@ -118,8 +141,13 @@
   }
 
   $: {
-    $pos, scrollAmount;
+    scrollAmount;
     syncCursor();
+  }
+
+  $: {
+    $pos;
+    syncCursor().then(syncScroll);
   }
 
   async function syncCursor() {
@@ -138,27 +166,20 @@
         y: gradualHeights[$pos.linePos],
         x,
       };
-      await tick();
-      syncScroll();
     }
   }
 
   $: {
-    $pos;
-    syncScroll();
-  }
-
-  $: {
-    lines, editorHeight;
+    $lines, editorHeight, editorWidth;
     if (editorWrapper) {
+      handleScroll();
       handleScroll();
     }
   }
 
   /** Keep visible row range in sync using the cached heights */
-  async function handleScroll() {
+  const handleScroll = debounceAnimate(() => {
     const { scrollTop } = editorWrapper;
-    await tick();
     // Refresh heights
     for (let v = 0; v < visibleRow.length; v++) {
       heights[firstVisibleRow + v] = sidePanel
@@ -190,7 +211,13 @@
       sum += heights[i] || averageHeight;
     }
     gradualHeights[items.length] = sum;
-  }
+    scrollHeight = sum;
+
+    visibleRow = items.slice(firstVisibleRow, lastVisibleRow).map((item, i) => {
+      return { index: i + firstVisibleRow, data: item };
+    });
+    syncCursor();
+  });
 
   let scrollAmount = 0;
   let scrollAmount2 = 0;
@@ -206,7 +233,6 @@
     sides = editorWrapper.getElementsByClassName('line side');
     pairs = editorWrapper.getElementsByClassName('pair');
     handleScroll();
-    requestAnimationFrame(handleScroll);
   });
 </script>
 
