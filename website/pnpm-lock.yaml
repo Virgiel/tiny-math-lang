@@ -1,4 +1,5 @@
 dependencies:
+  codejar: 3.3.0
   sirv-cli: 1.0.11
   svelte-routing: 1.5.0_svelte@3.35.0
 devDependencies:
@@ -374,6 +375,10 @@ packages:
       node: '>= 4.0'
     resolution:
       integrity: sha512-q5/jG+YQnSy4nRTV4F7lPepBJZ8qBNJJDBuJdoejDyLXgmL7IEo+Le2JDZudFTFt7mrCqIRaSjws4ygRCTCAXA==
+  /codejar/3.3.0:
+    dev: false
+    resolution:
+      integrity: sha512-IiuA9RnxnkB5NClFvYpoPZmj6sMNEZwjy025x8ar4vH0QcZtds5nmelFRbEsM0QNsj/jX4/elGCqOGBHxXDYhw==
   /color-convert/1.9.3:
     dependencies:
       color-name: 1.1.3
@@ -2471,6 +2476,7 @@ specifiers:
   '@rollup/plugin-commonjs': ^17.1.0
   '@rollup/plugin-node-resolve': ^11.2.0
   '@wasm-tool/rollup-plugin-rust': 1.0.5
+  codejar: 3.3.0
   postcss: 8.2.8
   rollup: ^2.42.4
   rollup-plugin-clear: 2.0.7

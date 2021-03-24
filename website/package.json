@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "sirv-cli": "^1.0.11",
-    "svelte-routing": "^1.5.0"
+    "svelte-routing": "^1.5.0",
+    "codejar": "3.3.0"
   }
 }
