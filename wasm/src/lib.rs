@@ -1,4 +1,5 @@
 use js_sys::Array;
+use tml::{highlighter::HtmlHighlighter, interpreter::Context};
 use wasm_bindgen::prelude::*;
 use wee_alloc;
 
@@ -14,8 +15,9 @@ pub fn start() {
 /** Execute a single line */
 #[wasm_bindgen]
 pub fn execute(line: &str) -> String {
-    match tml::exec_line(line) {
-        Ok(e) => e.clone(),
+    let mut ctx = Context::empty();
+    match tml::interpreter::compute(&mut ctx, line) {
+        Ok(e) => highlight(&e),
         Err(e) => format!("<span class=\"error\">{}</span>", e),
     }
 }
@@ -23,10 +25,11 @@ pub fn execute(line: &str) -> String {
 /** Execute multiple line in a batch */
 #[wasm_bindgen]
 pub fn execute_batch(lines: &str) -> Array {
-    tml::exec_batch(lines)
-        .iter()
-        .map(|it| match it {
-            Ok(e) => e.clone(),
+    let mut ctx = Context::empty();
+    lines
+        .lines()
+        .map(|it| match tml::interpreter::compute(&mut ctx, it) {
+            Ok(e) => highlight(&e),
             Err(e) => format!("<span class=\"error\">{}</span>", e),
         })
         .map(|it| JsValue::from_str(&it))
@@ -36,7 +39,7 @@ pub fn execute_batch(lines: &str) -> Array {
 /** Highlight single line */
 #[wasm_bindgen]
 pub fn highlight(line: &str) -> String {
-    tml::highlight(line)
+    tml::highlighter::highlight(line, HtmlHighlighter)
 }
 
 /** Highlight multiple lines in a batch */

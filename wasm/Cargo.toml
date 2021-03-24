@@ -13,7 +13,3 @@ console_error_panic_hook = "0.1"
 wee_alloc = "0.4.5"
 tml = { path = "../tml" }
 js-sys = "0.3"
-
-[profile.release]
-lto = true
-opt-level = "s"
