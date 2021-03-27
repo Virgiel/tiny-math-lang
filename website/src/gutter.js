@@ -21,14 +21,11 @@ const REG_NL = /\n/g;
 
 /** Generate gutter content from editor lines */
 function linesToGutterContent(lines) {
-  console.time('gutter');
-  let result = lines
+  return lines
     .map((line, idx) =>
       formatLineNb(idx, lines.length, (line.match(REG_NL) || []).length + 1)
     )
     .join('');
-  console.timeEnd('gutter');
-  return result;
 }
 
 export { linesToGutterContent };

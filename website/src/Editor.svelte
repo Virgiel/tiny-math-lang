@@ -18,7 +18,7 @@
       const jar = CodeJar(editor, editor => {
         const lines = wasm.highlight_batch(editor.textContent);
         editorGutter = linesToGutterContent(lines);
-        editor.innerHTML = lines.join('\n');
+        editor.innerHTML = lines.join('\n') + '\n';
       });
       const onUpdate = code => {
         const lines = wasm.execute_batch(code);
@@ -84,7 +84,7 @@
   }
   .editor,
   .result {
-    padding-right: 24px;
+    padding: 0 24px 100px 0;
   }
   .gutter {
     height: 100%;
