@@ -1,8 +1,9 @@
 <script>
   import { load } from './wasm';
   import { defaultCode } from './constant';
-  import { linesToGutterContent } from './gutter';
+  import { linesToGutterContent, heightsToGutterContent } from './gutter';
   import { saveSelection, restoreSelection } from './selection';
+  import { debounce } from './utils';
 
   let editor;
   let editorWrapper;
@@ -16,14 +17,6 @@
     editorGutter = linesToGutterContent(defaultCode.split('\n'));
     resultGutter = linesToGutterContent(resultContent.split('\n'));
   };
-
-  function debounce(cb, wait) {
-    let timeout = 0;
-    return (...args) => {
-      clearTimeout(timeout);
-      timeout = window.setTimeout(() => cb(...args), wait);
-    };
-  }
 
   function isCtrl(event) {
     return event.metaKey || event.ctrlKey;
@@ -61,20 +54,15 @@
 
   load().then(wasm => {
     refresh = debounce(() => {
-      console.log('refresh');
       const code = editor.textContent;
-      {
-        const lines = wasm.highlight_batch(editor.textContent);
-        editorGutter = linesToGutterContent(lines);
-        let pos = saveSelection(editor);
-        editor.innerHTML = lines.join('\n') + '\n';
-        restoreSelection(editor, pos);
-      }
-      {
-        const lines = wasm.execute_batch(code);
-        resultGutter = linesToGutterContent(lines);
-        resultContent = lines.join('\n');
-      }
+      const batchResult = wasm.execute_batch(code);
+      resultGutter = heightsToGutterContent(batchResult.lines_height());
+      resultContent = batchResult.content();
+      const highlightResult = wasm.highlight_batch(editor.textContent);
+      editorGutter = heightsToGutterContent(highlightResult.lines_height());
+      let pos = saveSelection(editor);
+      editor.innerHTML = highlightResult.content() + '\n';
+      restoreSelection(editor, pos);
     }, 30);
     refresh();
   });
@@ -99,7 +87,7 @@
 
 <div class="screen">
   <div class="wrapper" bind:this={editorWrapper} on:scroll={syncScroll}>
-    <div class="gutter">{editorGutter}</div>
+    <div class="gutter">{@html editorGutter}</div>
     <div
       class="editor"
       bind:this={editor}
@@ -107,11 +95,11 @@
       on:paste={refresh}
       contenteditable
     >
-      {defaultCode.repeat(100)}
+      {defaultCode.repeat(10)}
     </div>
   </div>
   <div class="wrapper bg" bind:this={resultWrapper} on:scroll={syncScroll}>
-    <div class="gutter bg">{resultGutter}</div>
+    <div class="gutter bg">{@html resultGutter}</div>
     <div class="result">
       {@html resultContent}
     </div>
@@ -144,6 +132,7 @@
     position: sticky;
     left: 0;
     padding: 0px 8px;
+    white-space: pre-wrap;
     background: var(--background);
     color: var(--gutter);
   }

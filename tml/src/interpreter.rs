@@ -32,7 +32,7 @@ pub fn compute(ctx: &mut Context, input: &str) -> Result<String, String> {
         Line::Expr(expr) => match expr {
             Expression::Assign(id, lit) => {
                 let nb = compute_literal(ctx, &lit)?;
-                ctx.assign(id, nb);
+                ctx.assign(id.into(), nb);
                 "".into()
             }
             Expression::Literal(lit) => compute_literal(ctx, &lit)?.to_string(),
@@ -82,7 +82,7 @@ fn compute_literal(ctx: &mut Context, lit: &Literal) -> Result<f64, String> {
         }
         Literal::Fun(name, lit) => {
             let nb = compute_literal(ctx, lit)?;
-            match name.as_str() {
+            match name.as_ref() {
                 "floor" => nb.floor(),
                 "ceil" => nb.ceil(),
                 "round" => nb.round(),
@@ -102,7 +102,7 @@ fn compute_literal(ctx: &mut Context, lit: &Literal) -> Result<f64, String> {
                 _ => return Err(format!("Unknown function '{}'", name)),
             }
         }
-        Literal::Var(id) => match id.as_str() {
+        Literal::Var(id) => match id.as_ref() {
             "PI" => std::f64::consts::PI,
             "E" => std::f64::consts::E,
             _ => match ctx.get(id) {

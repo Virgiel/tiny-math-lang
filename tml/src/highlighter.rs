@@ -60,48 +60,48 @@ impl Highlighter for AnsiHighlighter {
 }
 
 /** Generate styled HTML */
-pub fn highlight(code: &str, mut highlighter: impl Highlighter) -> String {
+pub fn highlight(
+    mut writer: impl Write,
+    code: &str,
+    mut highlighter: impl Highlighter,
+) -> fmt::Result {
     let mut lexer = Lexer::load(code);
     let peek = lexer.peek();
-    let mut buf = String::new();
-    if peek.kind() == TokenKind::Eof {
-        "".into()
-    } else if peek.kind() == TokenKind::Sep(Sep::Comment) {
-        highlighter.span(&mut buf, SpanKind::Comment, code).unwrap();
-        buf
+    if peek.kind() == TokenKind::Sep(Sep::Comment) {
+        highlighter.span(&mut writer, SpanKind::Comment, code)
     } else {
         let mut c = 0;
         loop {
             let token = lexer.next();
             let span = token.span();
             if c < span.start {
-                buf.push_str(&code[c..span.start]);
+                writer.write_str(&code[c..span.start])?;
             }
             c = span.end;
             match token.kind() {
                 TokenKind::Nb => highlighter
-                    .span(&mut buf, SpanKind::Nb, token.splice())
+                    .span(&mut writer, SpanKind::Nb, token.splice())
                     .unwrap(),
                 TokenKind::Op(_) => highlighter
-                    .span(&mut buf, SpanKind::Op, token.splice())
+                    .span(&mut writer, SpanKind::Op, token.splice())
                     .unwrap(),
                 TokenKind::Id => {
                     if lexer.peek().kind() == TokenKind::Sep(Sep::Open) {
                         highlighter
-                            .span(&mut buf, SpanKind::Fun, token.splice())
+                            .span(&mut writer, SpanKind::Fun, token.splice())
                             .unwrap()
                     } else {
                         highlighter
-                            .span(&mut buf, SpanKind::Var, token.splice())
+                            .span(&mut writer, SpanKind::Var, token.splice())
                             .unwrap()
                     }
                 }
                 TokenKind::Str => highlighter
-                    .span(&mut buf, SpanKind::Str, token.splice())
+                    .span(&mut writer, SpanKind::Str, token.splice())
                     .unwrap(),
-                TokenKind::Sep(_) => buf.push_str(token.splice()),
-                TokenKind::Err => buf.push_str(token.splice()),
-                TokenKind::Eof => return buf,
+                TokenKind::Sep(_) => writer.write_str(token.splice())?,
+                TokenKind::Err => writer.write_str(token.splice())?,
+                TokenKind::Eof => return Ok(()),
             }
         }
     }
@@ -114,8 +114,9 @@ mod test {
     proptest! {
         #[test]
         fn highlight_anything(s: String) {
-            highlight(&s, HtmlHighlighter);
-            highlight(&s, AnsiHighlighter);
+            let mut buf = String::new();
+            highlight(&mut buf, &s, HtmlHighlighter).unwrap();
+            highlight(&mut buf, &s, AnsiHighlighter).unwrap();
         }
     }
 }

@@ -6,8 +6,8 @@ use crate::lexer::{Lexer, Op, Sep, Token, TokenKind};
 excellent article: https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html  */
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Line {
-    Expr(Expression),
+pub enum Line<'a> {
+    Expr(Expression<'a>),
     Comment(usize),
     Empty,
 }
@@ -57,29 +57,29 @@ impl TryFrom<Op> for BinOp {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
-    Assign(String, Literal),
-    Literal(Literal),
-    Print(Vec<Print>),
+pub enum Expression<'a> {
+    Assign(&'a str, Literal<'a>),
+    Literal(Literal<'a>),
+    Print(Vec<Print<'a>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Literal {
+pub enum Literal<'a> {
     Nb(f64),
-    UnaryOp(UnOp, Box<Literal>),
-    BinaryOp(BinOp, Box<(Literal, Literal)>),
-    Fun(String, Box<Literal>),
-    Var(String),
+    UnaryOp(UnOp, Box<Literal<'a>>),
+    BinaryOp(BinOp, Box<(Literal<'a>, Literal<'a>)>),
+    Fun(&'a str, Box<Literal<'a>>),
+    Var(&'a str),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Print {
-    Literal(Literal),
-    Str(String),
+pub enum Print<'a> {
+    Literal(Literal<'a>),
+    Str(&'a str),
 }
 
 /** Parse a line from tokens */
-pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
+pub fn parse<'a>(mut lexer: Lexer<'a>) -> Result<Line<'a>, String> {
     let peek = lexer.peek();
     let line = match peek.kind() {
         TokenKind::Sep(Sep::Comment) => Line::Comment(peek.span().start),
@@ -91,7 +91,7 @@ pub fn parse(mut lexer: Lexer) -> Result<Line, String> {
                     let id = lexer.next().splice();
                     match lexer.next().kind() {
                         TokenKind::Op(Op::Eq) => {
-                            Expression::Assign(id.to_string(), parser_literal(&mut lexer, 0)?)
+                            Expression::Assign(id, parser_literal(&mut lexer, 0)?)
                         }
                         _ => {
                             lexer.reset();
@@ -122,7 +122,7 @@ fn expect_kind<'a, 'b>(
 }
 
 /** Parse a print parts from tokens */
-fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
+fn parse_print<'a>(lexer: &mut Lexer<'a>) -> Result<Vec<Print<'a>>, String> {
     let mut buf = Vec::new();
     loop {
         let token = lexer.peek();
@@ -134,7 +134,7 @@ fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
                         .after()
                         .err_there("Missing string end, '\"' is missing"));
                 }
-                Print::Str(lexer.next().splice().trim_matches('"').to_string())
+                Print::Str(lexer.next().splice().trim_matches('"'))
             }
             TokenKind::Eof => return Ok(buf),
             _ => Print::Literal(parser_literal(lexer, 0)?),
@@ -143,7 +143,7 @@ fn parse_print(lexer: &mut Lexer) -> Result<Vec<Print>, String> {
 }
 
 /** Parse a literal from tokens */
-fn parser_literal(lexer: &mut Lexer, min_bp: u8) -> Result<Literal, String> {
+fn parser_literal<'a>(lexer: &mut Lexer<'a>, min_bp: u8) -> Result<Literal<'a>, String> {
     let token = lexer.next();
     let mut lhs = match token.kind() {
         TokenKind::Nb => match token.splice().parse::<f64>() {

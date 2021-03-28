@@ -17,15 +17,13 @@ function formatLineNb(idx, nbLine, height) {
   return ' '.repeat(pad) + idx + '\n'.repeat(height);
 }
 
-const REG_NL = /\n/g;
-
-/** Generate gutter content from editor lines */
-function linesToGutterContent(lines) {
-  return lines
-    .map((line, idx) =>
-      formatLineNb(idx, lines.length, (line.match(REG_NL) || []).length + 1)
-    )
-    .join('');
+/** Generate gutter content from lines heights */
+function heightsToGutterContent(heights) {
+  let content = '';
+  for (let i = 0; i < heights.length; i++) {
+    content += formatLineNb(i, heights.length, heights[i]) + '\n';
+  }
+  return content;
 }
 
-export { linesToGutterContent };
+export { heightsToGutterContent };
