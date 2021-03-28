@@ -1,22 +1,18 @@
 <script>
-  import { load } from './wasm';
   import { defaultCode } from './constant';
-  import { linesToGutterContent, heightsToGutterContent } from './gutter';
+  import { heightsToGutterContent } from './gutter';
   import { saveSelection, restoreSelection } from './selection';
   import { debounce } from './utils';
+  import { onMount } from 'svelte';
+
+  export let wasm;
 
   let editor;
   let editorWrapper;
   let resultWrapper;
-  let resultContent;
+  let resultContent = '';
   let editorGutter = '';
   let resultGutter = '';
-
-  let refresh = () => {
-    resultContent = 'Loading...';
-    editorGutter = linesToGutterContent(defaultCode.split('\n'));
-    resultGutter = linesToGutterContent(resultContent.split('\n'));
-  };
 
   function isCtrl(event) {
     return event.metaKey || event.ctrlKey;
@@ -52,18 +48,19 @@
     }
   }
 
-  load().then(wasm => {
-    refresh = debounce(() => {
-      const code = editor.textContent;
-      const batchResult = wasm.execute_batch(code);
-      resultGutter = heightsToGutterContent(batchResult.lines_height());
-      resultContent = batchResult.content();
-      const highlightResult = wasm.highlight_batch(editor.textContent);
-      editorGutter = heightsToGutterContent(highlightResult.lines_height());
-      let pos = saveSelection(editor);
-      editor.innerHTML = highlightResult.content() + '\n';
-      restoreSelection(editor, pos);
-    }, 30);
+  const refresh = debounce(() => {
+    const code = editor.textContent;
+    const batchResult = wasm.execute_batch(code);
+    resultGutter = heightsToGutterContent(batchResult.lines_height());
+    resultContent = batchResult.content();
+    const highlightResult = wasm.highlight_batch(editor.textContent);
+    editorGutter = heightsToGutterContent(highlightResult.lines_height());
+    let pos = saveSelection(editor);
+    editor.innerHTML = highlightResult.content() + '\n';
+    restoreSelection(editor, pos);
+  }, 30);
+
+  onMount(() => {
     refresh();
   });
 
@@ -87,7 +84,7 @@
 
 <div class="screen">
   <div class="wrapper" bind:this={editorWrapper} on:scroll={syncScroll}>
-    <div class="gutter">{@html editorGutter}</div>
+    <div class="gutter">{editorGutter}</div>
     <div
       class="editor"
       bind:this={editor}
@@ -95,11 +92,11 @@
       on:paste={refresh}
       contenteditable
     >
-      {defaultCode.repeat(10)}
+      {defaultCode}
     </div>
   </div>
   <div class="wrapper bg" bind:this={resultWrapper} on:scroll={syncScroll}>
-    <div class="gutter bg">{@html resultGutter}</div>
+    <div class="gutter bg">{resultGutter}</div>
     <div class="result">
       {@html resultContent}
     </div>
