@@ -13,7 +13,7 @@
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@wasm-tool/rollup-plugin-rust": "1.0.5",
     "postcss": "8.2.8",
-    "rollup": "^2.43.0",
+    "rollup": "^2.43.1",
     "rollup-plugin-clear": "2.0.7",
     "rollup-plugin-copy": "3.4.0",
     "rollup-plugin-livereload": "^2.0.0",
@@ -24,7 +24,6 @@
     "svelte": "^3.35.0"
   },
   "dependencies": {
-    "codejar": "3.3.0",
     "sirv-cli": "^1.0.11",
     "svelte-routing": "^1.5.0"
   }

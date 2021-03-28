@@ -1,36 +1,82 @@
 <script>
-  import { onMount } from 'svelte';
-  import { CodeJar } from 'codejar';
   import { load } from './wasm';
   import { defaultCode } from './constant';
   import { linesToGutterContent } from './gutter';
+  import { saveSelection, restoreSelection } from './selection';
 
   let editor;
   let editorWrapper;
   let resultWrapper;
-  let resultContent = 'Loading...';
+  let resultContent;
   let editorGutter = '';
   let resultGutter = '';
 
-  onMount(() => {
+  let refresh = () => {
+    resultContent = 'Loading...';
     editorGutter = linesToGutterContent(defaultCode.split('\n'));
-    load().then(wasm => {
-      const jar = CodeJar(editor, editor => {
+    resultGutter = linesToGutterContent(resultContent.split('\n'));
+  };
+
+  function debounce(cb, wait) {
+    let timeout = 0;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = window.setTimeout(() => cb(...args), wait);
+    };
+  }
+
+  function isCtrl(event) {
+    return event.metaKey || event.ctrlKey;
+  }
+
+  function isUndo(event) {
+    return isCtrl(event) && !event.shiftKey && event.key === 'z';
+  }
+
+  function isRedo(event) {
+    return isCtrl(event) && event.shiftKey && event.key === 'z';
+  }
+
+  function isEdit(event) {
+    return (
+      !isUndo(event) &&
+      !isRedo(event) &&
+      event.key !== 'Meta' &&
+      event.key !== 'Control' &&
+      event.key !== 'Alt' &&
+      !event.key.startsWith('Arrow')
+    );
+  }
+
+  function onKeyDown(event) {
+    // Prevent the creation of a div instead of a new line on enter
+    if (event.key == 'Enter') {
+      event.preventDefault();
+      document.execCommand('insertHTML', false, '\n');
+    }
+    if (isEdit(event)) {
+      refresh();
+    }
+  }
+
+  load().then(wasm => {
+    refresh = debounce(() => {
+      console.log('refresh');
+      const code = editor.textContent;
+      {
         const lines = wasm.highlight_batch(editor.textContent);
         editorGutter = linesToGutterContent(lines);
+        let pos = saveSelection(editor);
         editor.innerHTML = lines.join('\n') + '\n';
-      });
-      const onUpdate = code => {
+        restoreSelection(editor, pos);
+      }
+      {
         const lines = wasm.execute_batch(code);
         resultGutter = linesToGutterContent(lines);
         resultContent = lines.join('\n');
-      };
-      jar.onUpdate(onUpdate);
-      onUpdate(defaultCode);
-      editor.style.whiteSpace = 'pre';
-      editor.style.resize = 'none';
-      editor.style.overflow = 'visible';
-    });
+      }
+    }, 30);
+    refresh();
   });
 
   let isSyncing = false;
@@ -54,8 +100,14 @@
 <div class="screen">
   <div class="wrapper" bind:this={editorWrapper} on:scroll={syncScroll}>
     <div class="gutter">{editorGutter}</div>
-    <div class="editor" bind:this={editor}>
-      {defaultCode}
+    <div
+      class="editor"
+      bind:this={editor}
+      on:keydown={onKeyDown}
+      on:paste={refresh}
+      contenteditable
+    >
+      {defaultCode.repeat(100)}
     </div>
   </div>
   <div class="wrapper bg" bind:this={resultWrapper} on:scroll={syncScroll}>
@@ -85,6 +137,7 @@
   .editor,
   .result {
     padding: 0 24px 100px 0;
+    outline: none;
   }
   .gutter {
     height: 100%;
