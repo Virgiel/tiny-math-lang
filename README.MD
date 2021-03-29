@@ -2,13 +2,10 @@
 
 This project is a small experimentation with a mathematical language.
 
-**WORK IN PROGRESS**
-
 ## Organisation
 
 - [tml](./tml) The language implementation written in rust
-- [repl](./repl) A TUI repl written in rust
-- [wasm](./wasm) A wasm binding for integration with the web
+- [wasm](./wasm) A wasm binding for integration in the browser
 - [website](./website) The project website and code editor written in svelte
 
 ## Language implementation
@@ -23,7 +20,8 @@ designed making it allocation free.
 
 ### Highlighter
 
-The role of the highlighter is to generate styled HTML from tokens.
+The role of the highlighter is to format tokens with colors. Styled Html and
+ANSI colors are supported.
 
 ### Parser
 
@@ -48,12 +46,11 @@ The role of the interpreter is to perform operations encoded in expression.
 
 ### Current implementation
 
-The core of the code editor is a very small library (<2kb) which provide basic
-machinery for copy/paste, undo/redo and highlighting. On top of that I linked
-the language implementation (interpretation & highlighting) using a WASM
-library, and I added hand-made line numbers and an interpretation result view
-which is scroll synchronized with the code editor. This simple design is working
-really well for the scale of this project.
+The core of the code editor is small amount of code around a content editable
+div. On top of that I linked the language implementation (interpretation &
+highlighting) using a WASM library, and I added line numbers and an
+interpretation result view which scroll state is synchronized with the code
+editor. This simple design is working really well for the scale of this project.
 
 ### First version postmortem
 
@@ -72,3 +69,8 @@ usability and was very buggy. Trying to leverage Svelte reactivity was a big
 mistake as I needed total control of the ordering between cursor mouvement,
 scroll focus and visible lines refresh. I think a saner design for a real code
 editor would be to use WebGL and rust to reach optimal performance and control.
+
+## TODO
+
+- Keeping cursor in place after highlighting is really slow and do not scale as
+  well as the WASM library.
