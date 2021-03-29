@@ -4,5 +4,19 @@ version = "0.1.0"
 authors = ["Virgiel"]
 edition = "2018"
 
+[dependencies]
+rustyline = { version = "8.0.0", optional = true }
+rustyline-derive = { version = "0.4.0", optional = true }
+
+[features]
+build-binary = ["rustyline", "rustyline-derive"]
+
 [dev-dependencies]
 proptest = "1.0.0"
+
+[[bin]]
+name = "tml"
+required-features = ["build-binary"]
+
+[profile.release]
+lto = true

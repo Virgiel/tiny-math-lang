@@ -52,13 +52,13 @@ pub fn execute_batch(lines: &str) -> BatchResult {
             Ok(line) => {
                 tml::highlighter::highlight(&mut acc.content, &line, HtmlHighlighter).unwrap();
                 acc.content.push('\n');
-                acc.lines_height
-                    .push(line.chars().filter(|c| *c == '\n').count() as u16);
+                acc.lines_height.push(1);
                 return acc;
             }
             Err(e) => {
                 writeln!(&mut acc.content, "<span class=\"error\">{}</span>", e).unwrap();
-                acc.lines_height.push(0);
+                acc.lines_height
+                    .push(e.chars().filter(|c| *c == '\n').count() as u16 + 1);
                 acc
             }
         },
@@ -84,8 +84,7 @@ pub fn highlight_batch(lines: &str) -> BatchResult {
         |mut acc, line| {
             tml::highlighter::highlight(&mut acc.content, line, HtmlHighlighter).unwrap();
             acc.content.push('\n');
-            acc.lines_height
-                .push(line.chars().filter(|c| *c == '\n').count() as u16);
+            acc.lines_height.push(1);
             return acc;
         },
     )

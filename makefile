@@ -2,7 +2,7 @@ dev:
 	cd website && pnpm run dev
 
 test:
-	cargo test
+	cd tml && cargo test
 	
 deploy:
 	cd website && pnpm run build && vercel --prod

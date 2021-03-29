@@ -1,6 +1,6 @@
 <script>
   import Editor from './Editor.svelte';
-  import { load } from './wasm';
+  import { load } from '../wasm';
 </script>
 
 {#await load()}

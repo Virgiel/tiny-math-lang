@@ -52,11 +52,12 @@
     const code = editor.textContent;
     const batchResult = wasm.execute_batch(code);
     resultGutter = heightsToGutterContent(batchResult.lines_height());
+    console.log(batchResult.lines_height());
     resultContent = batchResult.content();
     const highlightResult = wasm.highlight_batch(editor.textContent);
     editorGutter = heightsToGutterContent(highlightResult.lines_height());
     let pos = saveSelection(editor);
-    editor.innerHTML = highlightResult.content() + '\n';
+    editor.innerHTML = highlightResult.content();
     restoreSelection(editor, pos);
   }, 30);
 
@@ -129,7 +130,6 @@
     position: sticky;
     left: 0;
     padding: 0px 8px;
-    white-space: pre-wrap;
     background: var(--background);
     color: var(--gutter);
   }

@@ -4,7 +4,7 @@ dependencies:
 devDependencies:
   '@rollup/plugin-commonjs': 18.0.0_rollup@2.43.1
   '@rollup/plugin-node-resolve': 11.2.1_rollup@2.43.1
-  '@wasm-tool/rollup-plugin-rust': 1.0.5
+  '@wasm-tool/rollup-plugin-rust': 1.0.6
   postcss: 8.2.8
   rollup: 2.43.1
   rollup-plugin-clear: 2.0.7
@@ -59,10 +59,10 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-8Broas6vTtW4GIXTAHDoE32hnN2M5ykgCpWGbuXHQ15vEMqr23pB76e/GZcYsZCHALv50ktd24qhEyKr6wBtow==
-  /@polka/url/1.0.0-next.11:
+  /@polka/url/1.0.0-next.12:
     dev: false
     resolution:
-      integrity: sha512-3NsZsJIA/22P3QUyrEDNA2D133H4j224twJrdipXN38dpnIOzAbUDtOwkcJ5pXmn75w7LSQDjA4tO9dm1XlqlA==
+      integrity: sha512-6RglhutqrGFMO1MNUXp95RBuYIuc8wTnMAV5MUhLmjTOy78ncwOw7RgeQ/HeymkKXRhZd0s2DNrM1rL7unk3MQ==
   /@rollup/plugin-commonjs/18.0.0_rollup@2.43.1:
     dependencies:
       '@rollup/pluginutils': 3.1.0_rollup@2.43.1
@@ -152,7 +152,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==
-  /@wasm-tool/rollup-plugin-rust/1.0.5:
+  /@wasm-tool/rollup-plugin-rust/1.0.6:
     dependencies:
       glob: 7.1.6
       rimraf: 3.0.2
@@ -161,7 +161,7 @@ packages:
       wasm-pack: 0.9.1
     dev: true
     resolution:
-      integrity: sha512-qVkXNlU3KQmk1zRAIa45yY4WdFA0nlLM8hKv7WGxZptiZA/L+BAscg62U7eqDKjLzCzpUmMXHwN2NHiKrsOvkA==
+      integrity: sha512-PsjXJcUigs7C5tE0xNMED1JDvXYVrswfUmTbzQGNRDlc178Y9fM1zeDtb/Lfgh763G694SOWwA970ioOAsLKIw==
   /alphanum-sort/1.0.2:
     dev: true
     resolution:
@@ -2162,7 +2162,7 @@ packages:
       integrity: sha512-L8NILoRSBd38VcfFcERYCaVCnWPBLo9G6u/a37UJ8Ysv4DfjizMbFBcM+SswNnndJienhR6qy8KFuAEaeL4g8Q==
   /sirv/1.0.11:
     dependencies:
-      '@polka/url': 1.0.0-next.11
+      '@polka/url': 1.0.0-next.12
       mime: 2.5.2
       totalist: 1.1.0
     dev: false
@@ -2470,7 +2470,7 @@ packages:
 specifiers:
   '@rollup/plugin-commonjs': ^18.0.0
   '@rollup/plugin-node-resolve': ^11.2.1
-  '@wasm-tool/rollup-plugin-rust': 1.0.5
+  '@wasm-tool/rollup-plugin-rust': 1.0.6
   postcss: 8.2.8
   rollup: ^2.43.1
   rollup-plugin-clear: 2.0.7

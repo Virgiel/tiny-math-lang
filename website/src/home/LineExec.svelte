@@ -1,5 +1,5 @@
 <script>
-  import { load } from './wasm';
+  import { load } from '../wasm';
   export let code = '';
   async function cmp() {
     const wasm = await load();

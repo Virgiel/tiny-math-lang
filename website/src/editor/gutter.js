@@ -21,7 +21,7 @@ function formatLineNb(idx, nbLine, height) {
 function heightsToGutterContent(heights) {
   let content = '';
   for (let i = 0; i < heights.length; i++) {
-    content += formatLineNb(i, heights.length, heights[i]) + '\n';
+    content += formatLineNb(i, heights.length, heights[i]);
   }
   return content;
 }

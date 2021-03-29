@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use rustyline::{highlight::Highlighter, Config, Editor};
 use rustyline_derive::{Completer, Helper, Hinter, Validator};
 use tml::{
-    highlighter::AnsiHighlighter,
+    highlighter::{self, AnsiHighlighter},
     interpreter::{compute, Context},
 };
 
@@ -12,7 +12,9 @@ struct TmlHelper;
 
 impl Highlighter for TmlHelper {
     fn highlight<'l>(&self, line: &'l str, _: usize) -> std::borrow::Cow<'l, str> {
-        Cow::Owned(tml::highlighter::highlight(line, AnsiHighlighter))
+        let mut buf = String::new();
+        highlighter::highlight(&mut buf, line, AnsiHighlighter).unwrap();
+        Cow::Owned(buf)
     }
 
     fn highlight_char(&self, _: &str, _: usize) -> bool {
@@ -30,7 +32,9 @@ fn main() {
             Ok(line) => match compute(&mut ctx, &line) {
                 Ok(result) => {
                     if !result.is_empty() {
-                        println!("{}", tml::highlighter::highlight(&result, AnsiHighlighter))
+                        let mut buf = String::new();
+                        highlighter::highlight(&mut buf, &result, AnsiHighlighter).unwrap();
+                        println!("{}", buf);
                     }
                 }
                 Err(err) => println!("\x1b[0;31m{}\x1b[0m", err),
