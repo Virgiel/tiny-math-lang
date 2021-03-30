@@ -34,6 +34,7 @@
     <li>{'Multiplication'} <LineExec code={'1 * 2'} /></li>
     <li>{'Division      '} <LineExec code={'1 / 2'} /></li>
     <li>{'Modulo        '} <LineExec code={'100 % 7'} /></li>
+    <li>{'Power         '} <LineExec code={'2 ^ 6'} /></li>
   </ul>
   <h3>Common constants</h3>
   <ul>

@@ -11,6 +11,7 @@ pub enum Op {
     Div, // /
     Mod, // %
     Eq,  // =
+    Pow, // ^
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -109,6 +110,7 @@ impl<'a> Lexer<'a> {
                 '/' => ((TokenKind::Op(Op::Div), uni_range)),
                 '%' => ((TokenKind::Op(Op::Mod), uni_range)),
                 '=' => ((TokenKind::Op(Op::Eq), uni_range)),
+                '^' => ((TokenKind::Op(Op::Pow), uni_range)),
                 '(' => ((TokenKind::Sep(Sep::Open), uni_range)),
                 ')' => ((TokenKind::Sep(Sep::Close), uni_range)),
                 '#' => ((TokenKind::Sep(Sep::Comment), uni_range)),

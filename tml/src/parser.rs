@@ -38,6 +38,7 @@ pub enum BinOp {
     Mul, // x*x
     Div, // x/x
     Mod, // x%x
+    Pow, // x^x
 }
 
 impl TryFrom<Op> for BinOp {
@@ -50,7 +51,8 @@ impl TryFrom<Op> for BinOp {
             Op::Mul => BinOp::Mul,
             Op::Div => BinOp::Div,
             Op::Mod => BinOp::Mod,
-            _ => return Err("Expected an unary operator such as + or -"),
+            Op::Pow => BinOp::Pow,
+            _ => return Err("Expected an binary operator such as +, -, *, *, % or ^"),
         };
         Ok(op)
     }
@@ -218,5 +220,6 @@ fn infix_binding_power(op: BinOp) -> u8 {
     match op {
         BinOp::Add | BinOp::Sub => 1,
         BinOp::Mul | BinOp::Div | BinOp::Mod => 2,
+        BinOp::Pow => 3,
     }
 }

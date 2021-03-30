@@ -78,6 +78,7 @@ fn compute_literal(ctx: &mut Context, lit: &Literal) -> Result<f64, String> {
                 BinOp::Mul => l * r,
                 BinOp::Div => l / r,
                 BinOp::Mod => l % r,
+                BinOp::Pow => l.powf(r),
             }
         }
         Literal::Fun(name, lit) => {
@@ -197,6 +198,9 @@ mod test {
         assert_compute("2*(3*3)*4", 72.);
         assert_compute("2+3*3+4", 15.);
         assert_compute("(2+3)*(3+4)", 35.);
+        assert_compute("10^2", 100.);
+        assert_compute("2*10^2", 200.);
+        assert_compute("2*10^2*2", 400.);
     }
     #[test]
     fn test_var() {

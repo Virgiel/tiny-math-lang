@@ -8,6 +8,7 @@ const defaultCode = `
 (3/8) * (32+4) + 34
 2+2
 8/(2*(2+2))
+4.5*10^-3*35*10^6
 
 # Use constants
 PI
