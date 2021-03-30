@@ -52,7 +52,6 @@
     const code = editor.textContent;
     const batchResult = wasm.execute_batch(code);
     resultGutter = heightsToGutterContent(batchResult.lines_height());
-    console.log(batchResult.lines_height());
     resultContent = batchResult.content();
     const highlightResult = wasm.highlight_batch(editor.textContent);
     editorGutter = heightsToGutterContent(highlightResult.lines_height());
