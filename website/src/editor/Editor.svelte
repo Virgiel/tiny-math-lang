@@ -71,13 +71,15 @@
       return;
     }
     const target = e.target;
-    const topRate = target.scrollTop / target.scrollHeight;
-    const leftRate = target.scrollLeft / target.scrollWidth;
+    const topRate =
+      target.scrollTop / (target.scrollHeight - target.clientHeight);
+    const leftRate =
+      target.scrollLeft / (target.scrollWidth - target.clientWidth);
     const other = target.classList.contains('bg')
       ? editorWrapper
       : resultWrapper;
-    other.scrollTop = topRate * other.scrollHeight;
-    other.scrollLeft = leftRate * other.scrollWidth;
+    other.scrollTop = topRate * (other.scrollHeight - other.clientHeight);
+    other.scrollLeft = leftRate * (other.scrollWidth - other.clientWidth);
     isSyncing = true;
   }
 </script>
@@ -91,6 +93,7 @@
       on:keydown={onKeyDown}
       on:paste={refresh}
       contenteditable
+      spellcheck="false"
     >
       {defaultCode}
     </div>
