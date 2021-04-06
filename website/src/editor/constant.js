@@ -30,12 +30,16 @@ fract(10/3)
 "J'aime le chocolat"
 "Full: "1/3"   Truncated: "trunc(1/3)"    Decimal: "fract(1/3)
 
-# And now somethings more interesting
+# Reuse last not assigned result
+4096 - 512
+$/128
+
+# Now somethings more interesting
+"Compute hypotenuse"
 a = 12
 b = 32
-"a = "a" & b = "b
 "hypotenuse = sqrt(a*a+b*b)"
-"hypotenuse = "sqrt(a*a+b*b)
+hypotenuse = sqrt(a*a+b*b)
 
 `;
 

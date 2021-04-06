@@ -33,9 +33,13 @@ pub fn compute(ctx: &mut Context, input: &str) -> Result<String, String> {
             Expression::Assign(id, lit) => {
                 let nb = compute_literal(ctx, &lit)?;
                 ctx.assign(id.into(), nb);
-                "".into()
+                format!("{} = {}", id, nb)
             }
-            Expression::Literal(lit) => compute_literal(ctx, &lit)?.to_string(),
+            Expression::Literal(lit) => {
+                let nb = compute_literal(ctx, &lit)?;
+                ctx.assign("$".to_string(), nb);
+                nb.to_string()
+            }
             Expression::Print(print) => compute_print(ctx, &print)?,
         },
         Line::Empty | Line::Comment(_) => "".into(),
