@@ -205,6 +205,7 @@ mod test {
         assert_compute("10^2", 100.);
         assert_compute("2*10^2", 200.);
         assert_compute("2*10^2*2", 400.);
+        assert_compute("81/9/3", 3.);
     }
     #[test]
     fn test_var() {

@@ -198,7 +198,7 @@ fn parser_literal<'a>(lexer: &mut Lexer<'a>, min_bp: u8) -> Result<Literal<'a>, 
         };
 
         let bp = infix_binding_power(op);
-        if bp < min_bp {
+        if bp <= min_bp {
             break;
         }
         lexer.next();

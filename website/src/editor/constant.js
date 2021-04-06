@@ -1,5 +1,4 @@
-const defaultCode = `
-# Welcome into the Tiny Mathematic Language online editor
+const defaultCode = `# Welcome into the Tiny Mathematic Language online editor
 
 # You can perform simple operations
 1+1
