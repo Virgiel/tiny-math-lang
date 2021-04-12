@@ -144,7 +144,7 @@ impl<'a> Lexer<'a> {
                 c if c.is_alphabetic() || c == '$' => {
                     // Search end of id
                     let end = chars
-                        .find(|(_, c)| !c.is_alphanumeric())
+                        .find(|(_, c)| !c.is_alphanumeric() && *c != '_')
                         .map(|(i, _)| i + self.offset)
                         .unwrap_or(self.source.len());
                     (TokenKind::Id, start..end)
