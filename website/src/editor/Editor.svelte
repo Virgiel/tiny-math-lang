@@ -26,10 +26,20 @@
     return isCtrl(event) && event.shiftKey && event.key === 'z';
   }
 
+  function isCopy(event) {
+    return isCtrl(event) && event.key === 'c';
+  }
+
+  function isPaste(event) {
+    return isCtrl(event) && event.key === 'v';
+  }
+
   function isEdit(event) {
     return (
       !isUndo(event) &&
       !isRedo(event) &&
+      !isPaste(event) &&
+      !isCopy(event) &&
       event.key !== 'Meta' &&
       event.key !== 'Control' &&
       event.key !== 'Alt' &&
@@ -41,22 +51,46 @@
     // Prevent the creation of a div instead of a new line on enter
     if (event.key == 'Enter') {
       event.preventDefault();
-      document.execCommand('insertHTML', false, '\n');
-    }
-    if (isEdit(event)) {
+      replaceSelection('\n');
+    } else if (isEdit(event)) {
       refresh();
     }
   }
 
-  const refresh = debounce(() => {
-    const code = editor.textContent;
+  function onPaste(e) {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain').replace(/\r/g, '');
+    replaceSelection(text);
+  }
+
+  function replaceSelection(text) {
+    const pos = saveSelection(editor);
+    const content = editor.textContent;
+    const code =
+      content.substring(0, Math.min(pos.start, pos.end)) +
+      text +
+      content.substring(Math.max(pos.start, pos.end));
+    syncEditorContent(code);
+
+    const start = Math.min(pos.start, pos.end) + text.length;
+    restoreSelection(editor, {
+      start: start,
+      end: start,
+    });
+  }
+
+  function syncEditorContent(code) {
     const batchResult = wasm.execute_batch(code);
     resultGutter = heightsToGutterContent(batchResult.lines_height());
     resultContent = batchResult.content();
-    const highlightResult = wasm.highlight_batch(editor.textContent);
+    const highlightResult = wasm.highlight_batch(code);
     editorGutter = heightsToGutterContent(highlightResult.lines_height());
-    let pos = saveSelection(editor);
     editor.innerHTML = highlightResult.content();
+  }
+
+  const refresh = debounce(() => {
+    let pos = saveSelection(editor);
+    syncEditorContent(editor.textContent);
     restoreSelection(editor, pos);
   }, 30);
 
@@ -91,7 +125,7 @@
       class="editor"
       bind:this={editor}
       on:keydown={onKeyDown}
-      on:paste={refresh}
+      on:paste={onPaste}
       contenteditable
       spellcheck="false"
     >

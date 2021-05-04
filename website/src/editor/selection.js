@@ -2,7 +2,7 @@ import { treeIterator } from './utils';
 
 /** Save selection in the given node */
 function saveSelection(node) {
-  const s = window.getSelection();
+  const s = getSelection();
   let sel = { start: null, end: null };
   let offset = 0;
 
@@ -29,7 +29,7 @@ function saveSelection(node) {
 
 /** Restore selection in the given node */
 function restoreSelection(node, sel) {
-  let s = window.getSelection();
+  let s = getSelection();
   let startNode;
   let startOffset;
   let endNode;
