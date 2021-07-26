@@ -6,7 +6,7 @@ test:
 	
 update:
 	cd tml && cargo update
-	cd website && pnpm update -L
+	cd website && pnpm update
 	
 deploy:
 	cd tml && cargo install --path . --bin tml --features build-binary 
