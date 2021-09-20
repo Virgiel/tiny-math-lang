@@ -9,5 +9,5 @@ update:
 	cd website && pnpm update
 	
 deploy:
-	cd tml && cargo install --path . --bin tml --features build-binary 
+	cd tml && cargo install --force --path . --bin tml --features build-binary 
 	cd website && pnpm run build && vercel --prod
