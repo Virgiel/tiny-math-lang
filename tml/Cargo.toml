@@ -2,7 +2,7 @@
 name = "tml"
 version = "0.1.0"
 authors = ["Virgiel"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 rustyline = { version = "9.0.0", optional = true }
